@@ -1,0 +1,148 @@
+/* h2横並びレイアウト - proseクラスとの競合を回避 */
+.prose.h2-grid-layout,
+.prose-lg.h2-grid-layout {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 2rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* キーメッセージスタイル */
+.key-message {
+  font-size: 48px; /* 2em */
+  font-weight: 700;
+  line-height: 1.3333333;
+  margin-bottom: 0.75em;
+  text-align: center;
+}
+
+/* レイアウト別スタイル */
+/* 表紙レイアウト */
+.prose.layout-cover {
+  text-align: center;
+}
+
+.prose.layout-cover h1,
+.prose.layout-cover h2,
+.prose.layout-cover h3 {
+  text-align: center;
+  font-size: 36px; /* すべての見出しレベルを統一 */
+  font-weight: 700;
+  margin-bottom: 1em;
+  line-height: 1.2;
+}
+
+.prose.layout-cover h1 {
+  margin-top: 0;
+}
+
+/* 目次レイアウト */
+.prose.layout-toc ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
+
+.prose.layout-toc ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+
+/* 中扉レイアウト */
+.prose.layout-section {
+  text-align: center;
+}
+
+.prose.layout-section h1,
+.prose.layout-section h2,
+.prose.layout-section h3 {
+  text-align: center;
+  font-size: 36px; /* すべての見出しレベルを統一 */
+  font-weight: 700;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+
+.prose.layout-section h1 {
+  margin-top: 0;
+}
+
+/* まとめレイアウト */
+.prose.layout-summary ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
+
+.prose.layout-summary ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+
+.prose.layout-summary ul li,
+.prose.layout-summary ol li {
+  margin-bottom: 0.5em;
+  line-height: 1.6;
+}
+
+/* h2横並びレイアウト */
+.h2-grid-layout {
+  display: grid !important;
+  gap: 2rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+  .h2-grid-layout,
+  .prose.h2-grid-layout,
+  .prose-lg.h2-grid-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.h2-grid-item {
+  min-width: 0;
+  display: block;
+  text-align: left; /* グリッドアイテム内のテキストは左寄せ */
+}
+
+.h2-grid-item.prose {
+  text-align: left; /* .prose.layout-sectionのtext-align: centerを上書き */
+}
+
+.h2-grid-item h1 {
+  font-size: 1.5em;
+  margin-bottom: 0.5em;
+  text-align: left; /* 見出しも左寄せ */
+}
+
+.h2-grid-item h2 {
+  font-size: 1.2em;
+  margin-top: 0;
+  margin-bottom: 0.75em;
+  text-align: left; /* 見出しも左寄せ */
+}
+
+.h2-grid-item h3 {
+  font-size: 1em;
+  margin-top: 0.8em;
+  margin-bottom: 0.4em;
+  text-align: left; /* 見出しも左寄せ */
+}
+
+.h2-grid-item p,
+.h2-grid-item ul,
+.h2-grid-item ol {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+  font-size: 0.95em;
+  text-align: left; /* テキストも左寄せ */
+}
+
+.h2-grid-item li {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+

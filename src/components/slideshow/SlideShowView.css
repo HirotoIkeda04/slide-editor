@@ -1,0 +1,132 @@
+/* Slide Show View */
+.slideshow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.slideshow-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  color: #e5e7eb;
+  font-size: 1.25rem;
+}
+
+.slideshow-close-button {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  color: #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10000;
+}
+
+.slideshow-close-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.slideshow-close-button .material-icons {
+  font-size: 1.5rem;
+}
+
+.slideshow-slide-number {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.5rem;
+  color: #e5e7eb;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 10000;
+}
+
+.slideshow-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.75rem;
+  z-index: 10000;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.slideshow-container:hover .slideshow-hint {
+  opacity: 1;
+}
+
+.slideshow-hint-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #e5e7eb;
+  font-size: 0.875rem;
+}
+
+.slideshow-hint-item .material-icons {
+  font-size: 1.25rem;
+}
+
+.slideshow-slide-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.slideshow-slide-wrapper > div {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* スライドショー表示時のスライドスタイル */
+.slideshow-slide {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* スライドショー表示時のフォントサイズは固定値を使用（スケーリングで調整） */
+
+/* スライドショーではフォーマット別のフォントサイズ設定を優先するため、ここでは設定しない */
+
+.slideshow-container .key-message {
+  font-size: clamp(1.5em, 4vmin, 2.5em);
+}
+

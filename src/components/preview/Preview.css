@@ -1,0 +1,177 @@
+/* Preview Tab List */
+.preview-tab-list {
+  display: flex;
+  border-bottom: 0;
+  background: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 0.6rem 0.6rem 0 0;
+  margin-bottom: -2px;
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0; /* パディングを0に設定 */
+  overflow-x: hidden; /* デフォルトではスクロール不可 */
+  overflow-y: visible !important; /* 上側が見切れないように */
+  min-height: 48px; /* 最小高さを設定（内容に応じて拡張可能） */
+  height: auto; /* 高さを自動に */
+  align-items: center; /* 縦方向の中央揃え */
+  flex-wrap: nowrap; /* タブが折り返されないように */
+  white-space: nowrap; /* テキストの折り返しを防ぐ */
+  overscroll-behavior-x: none; /* スクロールの伝播を防ぐ */
+  scroll-behavior: auto; /* スクロールの動作を制御 */
+  width: 100%; /* 親要素の幅いっぱいに */
+  box-sizing: border-box; /* ボーダーとパディングを幅に含める */
+  position: relative; /* ツールチップの基準点 */
+  z-index: 1; /* ツールチップが表示されるように */
+}
+
+/* プレビューエリアの親要素のoverflow設定を調整 */
+.flex.flex-col.p-4 {
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+}
+.preview-tab-list-scrollable {
+  overflow-x: auto; /* スクロールが必要な場合のみ有効化 */
+  /* スクロールバーを非表示 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge旧版 */
+}
+/* Webkit系ブラウザ（Chrome, Safari, Edge）のスクロールバーを非表示 */
+.preview-tab-list-scrollable::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.preview-tab {
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  color: #f5f5f5;
+  font-size: 0.875rem; /* フォーマット名のフォントサイズを小さく */
+  min-width: 68px;
+  height: 48px; /* 高さを固定 */
+  position: relative;
+  top: 0;
+  margin-right: -1px;
+  border-radius: 0.6rem 0.6rem 0 0;
+  padding: 0.48rem 1.1rem 0.32rem 1.05rem;
+  font-weight: 500;
+  z-index: 1;
+  transition: all 0.14s cubic-bezier(.61,.16,.46,1.11);
+  outline: none;
+  display: flex;
+  align-items: center; /* 縦方向の中央揃え */
+  box-sizing: border-box;
+  gap: 0.5rem; /* アイコンとテキストの間隔 */
+  overflow: hidden; /* タブからはみ出さないように */
+  flex-shrink: 0; /* タブが縮小されないように */
+}
+.preview-tab:last-child,
+.preview-tab.last {
+  margin-right: 0 !important; /* 最後のタブの右マージンを0に */
+}
+.preview-tab:not(.active):hover {
+  background: rgba(255, 203, 107, 0.1);
+  color: #ffcb6b;
+  border-color: rgba(255, 203, 107, 0.5);
+  box-shadow: 0 2px 7px -4px rgba(255, 203, 107, 0.25);
+  z-index: 2;
+}
+.preview-tab.active {
+  background: #2b2b2b;
+  color: #ffcb6b;
+  border-color: #ffcb6b;
+  border-bottom: 0;
+  font-weight: 700;
+  box-shadow: 0 2px 8px -6px rgba(255, 203, 107, 0.25);
+  z-index: 10;
+}
+.preview-tab.first {
+  border-top-left-radius: 0.6rem;
+}
+.preview-tab.last {
+  border-top-right-radius: 0.6rem;
+}
+.tab-main-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  overflow: hidden; /* はみ出しを防ぐ */
+  min-width: 0; /* flexアイテムが縮小できるように */
+  flex: 1; /* 利用可能なスペースを使用 */
+  max-width: 100%;
+}
+.tab-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.tab-icon-text {
+  font-size: 1.125rem; /* Material Iconsと同じサイズ感 */
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.tab-instagram-icon {
+  width: 1.125rem; /* Material Iconsより小さく */
+  height: 1.125rem;
+  display: block;
+}
+.tab-aspect-ratio {
+  color: rgba(255, 203, 107, 0.6); /* フォーマット名と同じ系統の色（#ffcb6b）の暗めのバージョン */
+  font-size: 0.65rem; /* アスペクト比のフォントサイズをさらに小さく */
+  line-height: 1;
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.tab-ratio {
+  margin-left: 0.5em;
+  color: #c3e88d;
+}
+
+/* Preview tab tooltip */
+.preview-tab {
+  position: relative;
+}
+
+.preview-tab-tooltip-fixed {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+  color: #e5e7eb;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border: 1px solid #3a3a3a;
+  max-width: 280px;
+  min-width: 200px;
+  text-align: left;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.preview-tab-tooltip-fixed::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #2a2a2a;
+}
+

@@ -1,0 +1,264 @@
+/* トンマナ: シンプル */
+.tone-simple .prose {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: #1f2937; /* gray-800 */
+}
+.tone-simple .prose h1,
+.tone-simple .prose h2,
+.tone-simple .prose h3 {
+  color: #111827; /* gray-900 */
+}
+.tone-simple .prose a { color: #2563eb; }
+
+/* トンマナ用背景色クラス */
+.bg-tone-simple {
+  background-color: #f5f5f5;
+}
+.bg-tone-casual {
+  background-color: #25b7c0;
+}
+.bg-tone-luxury {
+  background-color: #2a2a2a;
+}
+.bg-tone-warm {
+  background-color: #FAF9F5;
+}
+
+/* トンマナ: カジュアル */
+.tone-casual {
+  background-color: #25b7c0;
+  color: #FFFFFF;
+}
+.tone-casual .prose {
+  font-family: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+  color: #FFFFFF;
+}
+.tone-casual .prose h1,
+.tone-casual .prose h2,
+.tone-casual .prose h3 {
+  color: #FFFFFF;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+.tone-casual .prose a { color: #1C6BBB; }
+.tone-casual .prose strong {
+  color: #FFFFFF;
+}
+.tone-casual .prose ul li::marker,
+.tone-casual .prose ol li::marker {
+  color: #FFFFFF;
+}
+.tone-casual .prose code {
+  background-color: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  padding: 0.15em 0.35em;
+  border-radius: 0.25em;
+}
+
+/* トンマナ: ラグジュアリー */
+.tone-luxury {
+  background-color: #2a2a2a;
+  color: #FFFFFF;
+}
+.tone-luxury .prose {
+  font-family: "Helvetica Neue", "Segoe UI", "Noto Sans JP", sans-serif;
+  color: #FFFFFF;
+}
+.tone-luxury .prose h1,
+.tone-luxury .prose h2,
+.tone-luxury .prose h3 {
+  color: #c9a961;
+}
+.tone-luxury .prose a { color: #f8e9a1; }
+
+/* トンマナ: 暖かい（Claude UI テーマ） */
+.tone-warm {
+  background-color: #FAF9F5;
+  color: #2C2C2C;
+}
+.tone-warm .prose {
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Segoe UI", sans-serif;
+  color: #2C2C2C;
+}
+.tone-warm .prose h1,
+.tone-warm .prose h2,
+.tone-warm .prose h3 {
+  color: #da7756;
+}
+.tone-warm .prose strong {
+  color: #da7756;
+}
+.tone-warm .prose a {
+  color: #1C6BBB;
+}
+.tone-warm .prose blockquote {
+  border-left: 4px solid #FFB38A;
+  background-color: #fdf5ee;
+  padding: 0.75em 1em;
+  color: #2C2C2C;
+}
+.tone-warm .prose ul {
+  padding-left: 1.5em;
+}
+.tone-warm .prose ul li::marker {
+  color: #E67D22;
+}
+.tone-warm .prose ol li::marker {
+  color: #da7756;
+}
+.tone-warm .prose code {
+  background-color: rgba(218, 119, 86, 0.12);
+  color: #da7756;
+  padding: 0.1em 0.3em;
+  border-radius: 0.25em;
+}
+
+/* トンマナ用チップ */
+.tone-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(255, 203, 107, 0.35);
+  background: #1f1f1f;
+  color: #f5f5f5;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tone-chip:hover {
+  background: rgba(255, 203, 107, 0.08);
+  border-color: rgba(255, 203, 107, 0.5);
+  transform: translateY(-1px);
+}
+
+.tone-chip.active {
+  background: rgba(255, 203, 107, 0.18);
+  border-color: #ffcb6b;
+  color: #ffcb6b;
+  box-shadow: 0 2px 8px rgba(255, 203, 107, 0.2);
+}
+
+.tone-chip-icon {
+  font-size: 0.875rem;
+}
+
+/* InstaPost/InstaStory wrapper styles */
+.instapost-wrapper {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  background-color: #1e1e1e !important; /* 外側コンテナの背景色を固定 */
+}
+/* サムネイルでは余白を削除 */
+.instapost-wrapper-thumbnail,
+.format-instapost .instapost-wrapper-thumbnail {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.tone-casual.instapost-wrapper {
+  background-color: #1e1e1e !important; /* 上書きを防ぐ */
+}
+.tone-warm.instapost-wrapper {
+  background-color: #1e1e1e !important; /* 上書きを防ぐ */
+}
+.tone-luxury.instapost-wrapper {
+  background-color: #1e1e1e !important; /* 上書きを防ぐ */
+}
+.instapost-frame {
+  /* widthとheightはPreview.tsxのslideStyleで設定されるため、ここでは設定しない */
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* ボーダーと影はPreview.tsxのslideStyleで設定 */
+}
+/* サムネイルでは余白を削除 */
+.instapost-frame-thumbnail,
+.format-instapost .instapost-frame-thumbnail {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.tone-luxury .instapost-frame {
+  background-color: #2a2a2a;
+  color: #f5f5f5;
+}
+.instapost-inner {
+  width: 100%;
+  height: 100%;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.instapost-inner-thumbnail {
+  padding: 0 !important; /* サムネイルではパディングを削除 */
+  display: flex !important; /* サムネイルでもflexを維持（垂直方向の中央寄せのため） */
+  align-items: center !important; /* サムネイルでも上下中央寄せを維持 */
+  justify-content: center !important; /* サムネイルでも左右中央寄せを維持 */
+}
+.instapost-inner .prose {
+  text-align: center;
+  width: 100%;
+  margin: 0;
+}
+/* 通常レイアウト（layout-coverとlayout-section以外）は左寄せ */
+.instapost-inner .prose:not(.layout-cover):not(.layout-section) {
+  text-align: left;
+}
+/* サムネイルでは通常レイアウトのみ左寄せ（layout-coverとlayout-sectionは中央寄せを維持） */
+/* .format-instapost .instapost-inner .prose より詳細度を高めるため、.instapost-inner.instapost-inner-thumbnail を使用 */
+.format-instapost .instapost-inner.instapost-inner-thumbnail .prose:not(.layout-cover):not(.layout-section),
+.instapost-wrapper.format-instapost .instapost-inner.instapost-inner-thumbnail .prose:not(.layout-cover):not(.layout-section) {
+  text-align: left !important;
+}
+.instapost-inner-thumbnail .prose:not(.layout-cover):not(.layout-section),
+.instapost-inner.instapost-inner-thumbnail .prose:not(.layout-cover):not(.layout-section),
+.format-instapost .instapost-inner-thumbnail .prose:not(.layout-cover):not(.layout-section),
+.format-instapost .instapost-inner.instapost-inner-thumbnail .prose:not(.layout-cover):not(.layout-section),
+.instapost-wrapper.format-instapost .instapost-inner-thumbnail .prose:not(.layout-cover):not(.layout-section),
+.instapost-wrapper.format-instapost .instapost-inner.instapost-inner-thumbnail .prose:not(.layout-cover):not(.layout-section) {
+  text-align: left !important; /* サムネイルでは通常レイアウトのみ左寄せ */
+  width: 100% !important;
+  margin: 0 !important;
+}
+.instapost-inner .prose > :first-child {
+  margin-top: 0 !important;
+}
+.instapost-inner .prose h1,
+.instapost-inner .prose h2,
+.instapost-inner .prose h3 {
+  margin-top: 0.25rem;
+}
+.instapost-inner .prose > *:first-child {
+  margin-top: 0 !important;
+}
+.instapost-inner-thumbnail .prose h1,
+.instapost-inner-thumbnail .prose h2,
+.instapost-inner-thumbnail .prose h3,
+.instapost-inner.instapost-inner-thumbnail .prose h1,
+.instapost-inner.instapost-inner-thumbnail .prose h2,
+.instapost-inner.instapost-inner-thumbnail .prose h3,
+.format-instapost .instapost-inner-thumbnail .prose h1,
+.format-instapost .instapost-inner-thumbnail .prose h2,
+.format-instapost .instapost-inner-thumbnail .prose h3,
+.format-instapost .instapost-inner.instapost-inner-thumbnail .prose h1,
+.format-instapost .instapost-inner.instapost-inner-thumbnail .prose h2,
+.format-instapost .instapost-inner.instapost-inner-thumbnail .prose h3,
+.instapost-wrapper.format-instapost .instapost-inner-thumbnail .prose h1,
+.instapost-wrapper.format-instapost .instapost-inner-thumbnail .prose h2,
+.instapost-wrapper.format-instapost .instapost-inner-thumbnail .prose h3,
+.instapost-wrapper.format-instapost .instapost-inner.instapost-inner-thumbnail .prose h1,
+.instapost-wrapper.format-instapost .instapost-inner.instapost-inner-thumbnail .prose h2,
+.instapost-wrapper.format-instapost .instapost-inner.instapost-inner-thumbnail .prose h3 {
+  text-align: left !important; /* サムネイルでは見出しも左寄せ */
+}
+

@@ -1,0 +1,66 @@
+/* Editor with line numbers */
+.editor-with-lines {
+  position: relative;
+  height: 100%;
+}
+.editor-lines {
+  overflow: hidden !important;
+  user-select: none;
+  font-size: 0.75rem;
+  font-family: monospace;
+  line-height: 1.5;
+  padding: 1rem;
+  padding-bottom: 6rem; /* 4行分の余白 (1.5 * 4 = 6rem) */
+  box-sizing: border-box;
+  /* スクロールバーを非表示 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.editor-lines::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+#slide-editor-textarea {
+  font-size: 0.75rem !important;
+  font-family: monospace !important;
+  line-height: 1.5 !important;
+  padding: 1rem !important;
+  padding-bottom: 6rem !important; /* 4行分の余白 (1.5 * 4 = 6rem) */
+  box-sizing: border-box !important;
+  resize: none;
+  min-height: 0;
+  background: transparent;
+  /* スクロールバーを非表示 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+#slide-editor-textarea::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+  width: 0;
+  height: 0;
+}
+
+/* Editor File Header */
+.editor-file-header {
+  display: flex;
+  align-items: center;
+  height: 44px; /* chat-headerと同じ固定高さ */
+  padding: 0.75rem 1rem; /* chat-headerと同じパディング */
+  box-sizing: border-box;
+}
+
+.editor-file-header .material-icons {
+  font-size: 1rem;
+  color: #888;
+}
+
+.editor-file-header span:not(.material-icons) {
+  font-size: 0.875rem;
+  color: #e5e7eb;
+  font-weight: 500;
+  user-select: none;
+}
+
