@@ -128,6 +128,57 @@ export const ItemTabBar = ({
     }
   }, [editingItemId])
 
+  // 矢印キーでアイテムを切り替える
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 編集モード中は無視
+      if (editingItemId) return
+      
+      // 入力フィールドにフォーカスがある場合は無視
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      // 上矢印キーまたは下矢印キーが押された場合
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        
+        // すべてのアイテムを順序付きで取得（メインスライドアイテムが最初）
+        const mainSlide = items.find(item => item.id === MAIN_SLIDE_ITEM_ID)
+        const others = items.filter(item => item.id !== MAIN_SLIDE_ITEM_ID)
+        const allItems = mainSlide ? [mainSlide, ...others] : others
+        
+        if (allItems.length === 0) return
+        
+        // 現在選択されているアイテムのインデックスを取得
+        const currentIndex = selectedItemId 
+          ? allItems.findIndex(item => item.id === selectedItemId)
+          : -1
+        
+        let newIndex: number | null = null
+        if (e.key === 'ArrowUp') {
+          // 上矢印: 前のアイテムに移動（最初の場合は移動しない）
+          if (currentIndex > 0) {
+            newIndex = currentIndex - 1
+          }
+        } else {
+          // 下矢印: 次のアイテムに移動（最後の場合は移動しない）
+          if (currentIndex < allItems.length - 1) {
+            newIndex = currentIndex + 1
+          }
+        }
+        
+        // 新しいアイテムを選択
+        if (newIndex !== null && allItems[newIndex]) {
+          onSelectItem(allItems[newIndex].id)
+        }
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedItemId, items, editingItemId, onSelectItem])
+
   const handleTooltipMouseEnter = (e: React.MouseEvent<HTMLButtonElement>, itemName: string) => {
     console.log('[ItemTabBar] Mouse enter', { itemName })
     // 既存のタイマーをクリア

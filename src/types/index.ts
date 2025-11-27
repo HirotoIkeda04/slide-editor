@@ -38,10 +38,39 @@ export interface BaseItem {
   updatedAt: string
 }
 
+// Table cell data types
+export type CellDataType = 'text' | 'number' | 'date' | 'percentage' | 'currency'
+
+// Cell format options
+export interface CellFormat {
+  type: CellDataType
+  // Number format options
+  decimalPlaces?: number
+  useThousandsSeparator?: boolean
+  // Date format options
+  dateFormat?: string // e.g., 'YYYY-MM-DD', 'MM/DD/YYYY'
+  // Currency format options
+  currencySymbol?: string // e.g., '$', '¥', '€'
+  // Percentage format options
+  percentageDecimalPlaces?: number
+}
+
+// Merged cell information
+export interface MergedCell {
+  row: number
+  col: number
+  rowSpan: number
+  colSpan: number
+}
+
 export interface TableItem extends BaseItem {
   type: 'table'
   data: string[][] // CSV形式
   headers?: string[]
+  // Cell metadata: key format is "row-col" (e.g., "0-0", "1-2")
+  cellTypes?: Record<string, CellDataType> // セルごとのデータ型
+  cellFormats?: Record<string, CellFormat> // セルごとの表示フォーマット
+  mergedCells?: MergedCell[] // 結合されたセルの情報
 }
 
 export type ImageDisplayMode = 'contain' | 'cover'
