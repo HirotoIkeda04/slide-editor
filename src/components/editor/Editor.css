@@ -46,6 +46,12 @@
   margin-left: 2ch;  /* 行番号カラムとの間に半角2スペース分の余白 */
 }
 
+/* Bottom Spacer for FloatingNavBar clearance */
+.editor-bottom-spacer {
+  height: 126px;  /* 7行 × 18px = 126px */
+  flex-shrink: 0;
+}
+
 /* Single Line */
 .editor-line {
   display: flex;
@@ -170,7 +176,7 @@
 
 .editor-file-header span:not(.material-icons) {
   font-size: 0.875rem;
-  color: #e5e7eb;
+  color: #9ca3af; /* グレー */
   font-weight: 500;
   user-select: none;
 }

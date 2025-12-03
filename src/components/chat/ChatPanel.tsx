@@ -84,18 +84,18 @@ const ToolUseDisplay = ({ toolName, toolInput, isStreaming, onApply, applied }: 
 
   const getToolIcon = (name: string) => {
     switch (name) {
-      case 'replace_content': return '📝'
-      case 'search_replace': return '🔄'
-      case 'insert_after': return '➕'
-      case 'delete_content': return '🗑️'
-      default: return '🔧'
+      case 'replace_content': return 'edit_note'
+      case 'search_replace': return 'find_replace'
+      case 'insert_after': return 'add_circle_outline'
+      case 'delete_content': return 'delete_outline'
+      default: return 'build'
     }
   }
 
   return (
     <div className="tool-use-display">
       <div className="tool-use-header">
-        <span className="tool-use-icon">{getToolIcon(toolName)}</span>
+        <span className="tool-use-icon material-icons">{getToolIcon(toolName)}</span>
         <span className="tool-use-label">{getToolLabel(toolName)}</span>
         {isStreaming && <span className="tool-use-streaming">処理中...</span>}
       </div>
@@ -424,7 +424,7 @@ export const ChatPanel = ({ editorContent, onApplyEdit, onCreateTable, existingI
       {/* チャットヘッダー */}
       <div className="chat-header">
         <div className="flex items-center gap-1.5">
-          <div className="chat-ai-icon">✨</div>
+          <span className="chat-ai-icon material-icons">auto_awesome</span>
           <h3 className="text-sm chat-header-title">AI Assistant</h3>
         </div>
       </div>
@@ -433,7 +433,7 @@ export const ChatPanel = ({ editorContent, onApplyEdit, onCreateTable, existingI
       <div className="flex-1 overflow-y-auto p-4 space-y-5 chat-messages">
         {messages.length === 0 && !streamingText && (
           <div className="chat-empty-state">
-            <div className="chat-empty-icon">💬</div>
+            <span className="chat-empty-icon material-icons">forum</span>
             <p className="chat-empty-text">AIアシスタントに編集を依頼</p>
             <p className="chat-empty-subtext">スライドの内容を編集・改善します</p>
           </div>

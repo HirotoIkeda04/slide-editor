@@ -8,7 +8,7 @@ const generateId = (): string => {
 }
 
 // Attribute display width (fixed, right-aligned)
-const ATTRIBUTE_WIDTH = 5 // characters
+// const ATTRIBUTE_WIDTH = 5 // characters (currently unused)
 
 interface EditorProps {
   lines: EditorLine[]
@@ -72,16 +72,14 @@ export const Editor = ({
     newText: string,
     newAttribute?: string | null
   ) => {
-    setLines(prevLines => {
-      const newLines = [...prevLines]
-      const updatedLine = { ...newLines[lineIndex], text: newText }
-      if (newAttribute !== undefined) {
-        updatedLine.attribute = newAttribute
-      }
-      newLines[lineIndex] = updatedLine
-      return newLines
-    })
-  }, [setLines])
+    const newLines = [...lines]
+    const updatedLine = { ...newLines[lineIndex], text: newText }
+    if (newAttribute !== undefined) {
+      updatedLine.attribute = newAttribute
+    }
+    newLines[lineIndex] = updatedLine
+    setLines(newLines)
+  }, [lines, setLines])
 
   // Handle key down for line navigation and special keys
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>, lineIndex: number) => {
@@ -708,6 +706,8 @@ export const Editor = ({
               </div>
             )
           })}
+        {/* Bottom spacer for FloatingNavBar clearance */}
+        <div className="editor-bottom-spacer" />
         </div>
 
       {/* Content area */}
@@ -759,6 +759,8 @@ export const Editor = ({
             </div>
         </div>
         ))}
+        {/* Bottom spacer for FloatingNavBar clearance */}
+        <div className="editor-bottom-spacer" />
       </div>
     </div>
   )

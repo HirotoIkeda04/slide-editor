@@ -22,7 +22,7 @@
 
 .chat-ai-icon {
   font-size: 1rem; /* editor-file-headerのアイコンと同じサイズ */
-  animation: pulse 2s ease-in-out infinite;
+  color: #d4a574; /* アクセントカラー */
   line-height: 1;
   display: flex;
   align-items: center;
@@ -34,7 +34,7 @@
 }
 
 .chat-header-title {
-  color: #ffffff; /* 白色 */
+  color: #9ca3af; /* グレー */
   font-size: 0.875rem; /* editor-file-headerのテキストと同じサイズ */
   font-weight: 500; /* editor-file-headerのテキストと同じ太さ */
   line-height: 1;
@@ -54,7 +54,7 @@
   border-radius: 0.375rem;
   background: transparent;
   border: none; /* 枠線を削除 */
-  color: #9ca3af;
+  color: #555;  /* より控えめなグレー */
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -170,6 +170,7 @@
 .chat-empty-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
+  color: #d4a574; /* アクセントカラー */
   opacity: 0.3;
 }
 
@@ -458,7 +459,7 @@
 }
 
 .chat-textarea::placeholder {
-  color: #6b7280;
+  color: #555;  /* 他の要素と統一 */
   font-size: 0.75rem;
 }
 
@@ -518,7 +519,7 @@
   background: transparent;
   border: none; /* 枠線を削除 */
   border-radius: 0.375rem;
-  color: #6b7280; /* より暗い色に変更 */
+  color: #555;  /* より控えめなグレー */
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -560,7 +561,7 @@
   border-radius: 9999px; /* 完全に丸く */
   background: transparent;
   border: 1px solid #3a3a3a;
-  color: #9ca3af;
+  color: #555;  /* より控えめなグレー */
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -801,6 +802,7 @@
 
 .tool-use-icon {
   font-size: 1rem;
+  color: #d4a574; /* アクセントカラー */
 }
 
 .tool-use-label {

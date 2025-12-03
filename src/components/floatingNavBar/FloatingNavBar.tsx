@@ -55,7 +55,7 @@ export const FloatingNavBar = ({
   tableState,
   onImageOperation,
   imageState,
-  leftOffset,
+  leftOffset: _leftOffset,
 }: FloatingNavBarProps) => {
   const [visibleCount, setVisibleCount] = useState<number>(Infinity)
   const [showOverflow, setShowOverflow] = useState(false)

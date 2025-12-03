@@ -681,7 +681,7 @@ function App() {
                     </div>
                   ) : (
                     <span 
-                      style={{ fontSize: '0.875rem', color: '#e5e7eb', fontWeight: 500, cursor: selectedItem.id === MAIN_SLIDE_ITEM_ID ? 'default' : 'text' }}
+                      style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, cursor: selectedItem.id === MAIN_SLIDE_ITEM_ID ? 'default' : 'text' }}
                       onDoubleClick={(e) => handleHeaderNameDoubleClick(selectedItem, e)}
                       title={selectedItem.id === MAIN_SLIDE_ITEM_ID ? '' : 'Double-click to edit name'}
                     >
@@ -718,7 +718,7 @@ function App() {
       </div>
 
             {/* アイテムタブバー（常時表示） */}
-            <div className="flex flex-col" style={{ width: '42px', minHeight: 0, borderLeft: '1px solid #3a3a3a' }}>
+            <div className="flex flex-col" style={{ width: '36px', minHeight: 0, borderLeft: '1px solid #3a3a3a' }}>
               <ItemTabBar
                 items={items}
                 selectedItemId={selectedItemId}
@@ -735,8 +735,8 @@ function App() {
             <div
               className="pointer-events-none fixed z-40"
               style={{ 
-                bottom: '56px',
-                left: 'calc(40% + 60px + (35% - 42px - 60px) / 2)', 
+                bottom: '64px',
+                left: 'calc(40% + 60px + (35% - 36px - 60px) / 2)', 
                 transform: 'translateX(-50%)',
                 maxWidth: '420px',
                 width: 'calc(35% - 150px)'
@@ -754,7 +754,7 @@ function App() {
               className="pointer-events-none fixed z-40"
               style={{ 
                 bottom: '12px',
-                left: 'calc(40% + 60px + (35% - 42px - 60px) / 2)', 
+                left: 'calc(40% + 60px + (35% - 36px - 60px) / 2)', 
                 transform: 'translateX(-50%)',
                 maxWidth: '420px',
                 width: 'calc(35% - 150px)'

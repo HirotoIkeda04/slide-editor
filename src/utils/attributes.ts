@@ -8,7 +8,7 @@ export const isAlphabetAttribute = (attr: AttributeValue): boolean => {
   return attr !== null && /^[A-Z]\.$/.test(attr)
 }
 
-const getDefaultAttributeByIndent = (_indentLevel: number): AttributeValue => {
+export const getDefaultAttributeByIndent = (_indentLevel: number): AttributeValue => {
   return null
 }
 

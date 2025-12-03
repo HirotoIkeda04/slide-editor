@@ -2235,18 +2235,44 @@ export const ItemDetailPanel = ({
 
       {/* Floating Bottom Navigation Bar */}
       {item.type === 'table' && (
-        <FloatingNavBar
-          itemType="table"
-          onTableOperation={handleTableOperation}
-          tableState={getTableState()}
-        />
+        <div
+          className="pointer-events-none"
+          style={{ 
+            position: 'absolute',
+            bottom: '12px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 40
+          }}
+        >
+          <div className="pointer-events-auto">
+            <FloatingNavBar
+              itemType="table"
+              onTableOperation={handleTableOperation}
+              tableState={getTableState()}
+            />
+          </div>
+        </div>
       )}
       {item.type === 'image' && (
-        <FloatingNavBar
-          itemType="image"
-          onImageOperation={handleImageOperation}
-          imageState={getImageState()}
-        />
+        <div
+          className="pointer-events-none"
+          style={{ 
+            position: 'absolute',
+            bottom: '12px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 40
+          }}
+        >
+          <div className="pointer-events-auto">
+            <FloatingNavBar
+              itemType="image"
+              onImageOperation={handleImageOperation}
+              imageState={getImageState()}
+            />
+          </div>
+        </div>
       )}
     </div>
   )
