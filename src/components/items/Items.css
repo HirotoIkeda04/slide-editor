@@ -167,42 +167,6 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace !important;
 }
 
-/* ItemTabBar tooltip */
-.item-tab-tooltip-fixed {
-  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%) !important;
-  color: #e5e7eb !important;
-  padding: 0.5rem 0.75rem !important;
-  border-radius: 0.5rem !important;
-  font-size: 0.75rem !important;
-  font-weight: 500 !important;
-  white-space: nowrap !important;
-  word-wrap: break-word;
-  word-break: break-word;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-  border: 1px solid #3a3a3a !important;
-  max-width: 200px;
-  min-width: auto;
-  text-align: left;
-  line-height: 1.5;
-  margin-left: 0;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-.item-tab-tooltip-fixed::before {
-  content: '';
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  border-right: 6px solid #2a2a2a;
-}
-
 /* ===== Vertical Tabs ===== */
 .vertical-tabs-container {
   display: flex;
@@ -215,10 +179,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  padding: 0.25rem;
+  padding: 0.125rem;
   background: #1e1e1e;
   border-right: 1px solid #3a3a3a;
-  min-width: 42px;
+  min-width: 36px;
 }
 
 .vertical-tab {
@@ -1105,7 +1069,7 @@
   flex-direction: column;
   align-items: center;
   height: 100%;
-  width: 42px;
+  width: 36px;
   background: #1e1e1e;
   border-right: 1px solid #3a3a3a;
   position: relative;
@@ -1115,28 +1079,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   background: transparent; /* Outlinedスタイル: 背景を透明に */
   border: none;
-  color: #d4a574; /* 黄色系のアイコン色 */
+  color: #888; /* 非選択状態と同じグレー */
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  margin: 4px auto; /* 中央揃え + 上下余白 */
   outline: none; /* ブラウザのデフォルトフォーカススタイルを無効化 */
-}
-
-/* 追加ボタンの下に短い横棒を追加 */
-.item-tab-add-button::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px; /* 左右の壁に付かない短めの横棒 */
-  height: 1px;
-  background: #3a3a3a;
 }
 
 /* 丸みを帯びた四角形のOutlinedボタンを作成 */
@@ -1145,18 +1096,18 @@
   position: absolute;
   width: 16px; /* アイコンサイズに合わせて小さく */
   height: 16px; /* アイコンサイズに合わせて小さく */
-  border: 1.5px solid #d4a574; /* 黄色系のボーダー */
+  border: 1.5px solid #666; /* グレーのボーダー */
   border-radius: 0.2rem; /* より小さな丸み */
   transition: all 0.2s ease;
 }
 
 .item-tab-add-button:hover {
   background: transparent;
-  color: #e0b485; /* ホバー時にアイコンを明るく */
+  color: #d4a574; /* ホバー時にアクセントカラー */
 }
 
 .item-tab-add-button:hover::before {
-  border-color: #e0b485; /* ホバー時にボーダーを明るく */
+  border-color: #d4a574; /* ホバー時にアクセントカラー */
   background: rgba(212, 165, 116, 0.1); /* ホバー時に薄い黄色の背景 */
 }
 
@@ -1198,8 +1149,99 @@
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+}
+
+/* Main Slideの下の区切り線 */
+.item-tab-separator {
+  width: 24px;
+  height: 1px;
+  background: #3a3a3a;
+  margin: 4px auto;
   flex-shrink: 0;
-  outline: none; /* ブラウザのデフォルトフォーカススタイルを無効化 */
+}
+
+/* ===== Arc風 垂直アイテム名バー ===== */
+.item-name-bar {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: #1e1e1e;
+  border-right: 1px solid #3a3a3a;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  z-index: 1;
+  
+  /* 横幅アニメーション */
+  opacity: 0;
+  visibility: hidden;
+  transition: width 0.2s ease, opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.item-name-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.item-name-bar.visible {
+  width: 110px;
+  opacity: 1;
+  visibility: visible;
+}
+
+.item-name-bar-item {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.item-name-bar-item:hover {
+  background: rgba(212, 165, 116, 0.1);
+}
+
+.item-name-bar-item:hover .item-name-bar-text {
+  color: #d4a574;
+}
+
+.item-name-bar-item.active {
+  background: rgba(212, 165, 116, 0.15);
+}
+
+.item-name-bar-item.active .item-name-bar-text {
+  color: #d4a574;
+  font-weight: 500;
+}
+
+.item-name-bar-text {
+  color: #888;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: color 0.2s ease;
+}
+
+.item-name-bar-separator {
+  width: calc(100% - 1.5rem);
+  height: 1px;
+  background: #3a3a3a;
+  margin: 4px 0.75rem;
+  flex-shrink: 0;
+}
+
+.item-name-bar-add-spacer {
+  height: 36px;
+  flex-shrink: 0;
 }
 
 .item-tab-icon-button:hover {
@@ -1584,6 +1626,7 @@
   min-width: 0;
   width: 100%;
   max-width: 100%;
+  position: relative; /* FloatingNavBarの絶対配置用 */
 }
 
 .item-detail-panel.empty {

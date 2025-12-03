@@ -29,12 +29,13 @@ export const ItemTabBar = ({
   const [editingName, setEditingName] = useState('')
   const [nameError, setNameError] = useState('')
   const nameInputRef = useRef<HTMLInputElement>(null)
-  const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
-  const tooltipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const tooltipShowTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [actionPopupItemId, setActionPopupItemId] = useState<string | null>(null)
   const [isEditingNameInPopup, setIsEditingNameInPopup] = useState(false)
   const popupNameInputRef = useRef<HTMLInputElement>(null)
+  
+  // Arc風 垂直アイテム名バーの状態
+  const [showNameBar, setShowNameBar] = useState(false)
+  const nameBarTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const getItemIcon = (type: Item['type']): string => {
     switch (type) {
@@ -227,77 +228,27 @@ export const ItemTabBar = ({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedItemId, items, editingItemId, onSelectItem])
 
-  const handleTooltipMouseEnter = (e: React.MouseEvent<HTMLButtonElement>, itemName: string) => {
-    console.log('[ItemTabBar] Mouse enter', { itemName })
+  // サイドバー全体のホバーハンドラー（Arc風垂直バー用）
+  const handleSidebarMouseEnter = () => {
     // 既存のタイマーをクリア
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current)
-      tooltipTimeoutRef.current = null
+    if (nameBarTimeoutRef.current) {
+      clearTimeout(nameBarTimeoutRef.current)
+      nameBarTimeoutRef.current = null
     }
-    if (tooltipShowTimeoutRef.current) {
-      clearTimeout(tooltipShowTimeoutRef.current)
-      tooltipShowTimeoutRef.current = null
-    }
-    
-    // getBoundingClientRect()をsetTimeoutの外で実行して、結果を保存
-    const target = e.currentTarget
-    const rect = target.getBoundingClientRect()
-    const tooltipWidth = 200 // ツールチップの幅
-    const padding = 10 // 画面端からの余白
-    const gap = 8 // ボタンとツールチップの間の余白
-    
-    // まず右側に表示できるかチェック
-    const tooltipLeftRight = rect.right + gap
-    const tooltipRightRight = tooltipLeftRight + tooltipWidth
-    const windowRightEdge = window.innerWidth - padding
-    
-    let tooltipLeft: number
-    let tooltipRight: number
-    
-    // 右側に表示できる場合
-    if (tooltipRightRight <= windowRightEdge) {
-      tooltipLeft = tooltipLeftRight
-      tooltipRight = tooltipRightRight
-    } else {
-      // 右側にスペースがない場合は左側に表示
-      tooltipRight = rect.left - gap
-      tooltipLeft = tooltipRight - tooltipWidth
-      
-      // 左側でも画面外に出る場合は、画面内に収める
-      if (tooltipLeft < padding) {
-        tooltipLeft = padding
-        tooltipRight = tooltipLeft + tooltipWidth
-      }
-    }
-    
-    const y = rect.top + rect.height / 2 // ボタンの中央
-    
-    // leftをツールチップの左端に設定し、topを中央に合わせる
-    const x = tooltipLeft
-    
-    // 少し遅延を設けてツールチップを表示
-    tooltipShowTimeoutRef.current = setTimeout(() => {
-      setTooltip({
-        text: itemName,
-        x: x,
-        y: y
-      })
-    }, 300) // 300msの遅延
+    // 一定時間後に垂直バーを表示
+    nameBarTimeoutRef.current = setTimeout(() => {
+      setShowNameBar(true)
+    }, 400) // 400msの遅延
   }
 
-  const handleTooltipMouseLeave = () => {
+  const handleSidebarMouseLeave = () => {
     // 表示待ちのタイマーをクリア
-    if (tooltipShowTimeoutRef.current) {
-      clearTimeout(tooltipShowTimeoutRef.current)
-      tooltipShowTimeoutRef.current = null
+    if (nameBarTimeoutRef.current) {
+      clearTimeout(nameBarTimeoutRef.current)
+      nameBarTimeoutRef.current = null
     }
-    // ツールチップを非表示にする
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current)
-    }
-    tooltipTimeoutRef.current = setTimeout(() => {
-      setTooltip(null)
-    }, 100)
+    // バーを非表示にする
+    setShowNameBar(false)
   }
 
   // メインスライドアイテムとその他のアイテムを分離
@@ -312,18 +263,45 @@ export const ItemTabBar = ({
   })
 
   return (
-    <div className="item-tab-bar">
-      {/* アイテムリスト（追加ボタンも含めて縦一列） */}
-      <div className="item-tab-items">
-        {/* 追加ボタン */}
-        <button
-          className="item-tab-add-button"
-          onClick={onAddItem}
-          title="Add new item"
-        >
-          <span className="material-icons">add</span>
-        </button>
+    <div 
+      className="item-tab-bar"
+      onMouseEnter={handleSidebarMouseEnter}
+      onMouseLeave={handleSidebarMouseLeave}
+    >
+      {/* Arc風 垂直アイテム名バー */}
+      <div className={`item-name-bar ${showNameBar ? 'visible' : ''}`}>
+        {/* メインスライドアイテム */}
+        {mainSlideItem && (
+          <div 
+            className={`item-name-bar-item ${selectedItemId === mainSlideItem.id ? 'active' : ''}`}
+            onClick={() => onSelectItem(mainSlideItem.id)}
+          >
+            <span className="item-name-bar-text">{mainSlideItem.name}</span>
+          </div>
+        )}
+        
+        {/* セパレーター */}
+        {mainSlideItem && otherItems.length > 0 && (
+          <div className="item-name-bar-separator" />
+        )}
+        
+        {/* その他のアイテム */}
+        {otherItems.map(item => (
+          <div 
+            key={item.id}
+            className={`item-name-bar-item ${selectedItemId === item.id ? 'active' : ''}`}
+            onClick={() => onSelectItem(item.id)}
+          >
+            <span className="item-name-bar-text">{item.name}</span>
+          </div>
+        ))}
+        
+        {/* 追加ボタンのスペーサー */}
+        <div className="item-name-bar-add-spacer" />
+      </div>
 
+      {/* アイテムリスト（縦一列） */}
+      <div className="item-tab-items">
         {/* メインスライドアイテムを最初に表示 */}
         {mainSlideItem && (
           <button
@@ -334,11 +312,14 @@ export const ItemTabBar = ({
               // マウスクリック後はフォーカスを削除して、ブラウザのデフォルトフォーカススタイルを防ぐ
               e.currentTarget.blur()
             }}
-            onMouseEnter={(e) => handleTooltipMouseEnter(e, mainSlideItem.name)}
-            onMouseLeave={handleTooltipMouseLeave}
           >
             <span className="material-icons">{getItemIcon(mainSlideItem.type)}</span>
           </button>
+        )}
+
+        {/* Main Slideとその他のアイテムの区切り線 */}
+        {mainSlideItem && otherItems.length > 0 && (
+          <div className="item-tab-separator" />
         )}
         
         {/* その他のアイテム */}
@@ -360,12 +341,19 @@ export const ItemTabBar = ({
               e.stopPropagation()
               handleIconDoubleClick(item, e)
             }}
-            onMouseEnter={(e) => handleTooltipMouseEnter(e, item.name)}
-            onMouseLeave={handleTooltipMouseLeave}
           >
             <span className="material-icons">{getItemIcon(item.type)}</span>
           </button>
         ))}
+
+        {/* 追加ボタン（常に一番下） */}
+        <button
+          className="item-tab-add-button"
+          onClick={onAddItem}
+          title="Add new item"
+        >
+          <span className="material-icons">add</span>
+        </button>
       </div>
 
       {/* アクションポップアップ（Insert/Delete） */}
@@ -376,7 +364,7 @@ export const ItemTabBar = ({
         // ポップアップの位置を計算
         const allItems = mainSlideItem ? [mainSlideItem, ...otherItems] : otherItems
         const itemIndex = allItems.findIndex(item => item.id === actionPopupItemId)
-        const topPosition = itemIndex * 48 + 48 // 追加ボタンの高さ + アイテムの高さ * インデックス
+        const topPosition = itemIndex * 48 // アイテムの高さ * インデックス
         
         return (
           <div 
@@ -487,7 +475,7 @@ export const ItemTabBar = ({
         // 編集対象のアイテムのインデックスを取得
         const allItems = mainSlideItem ? [mainSlideItem, ...otherItems] : otherItems
         const itemIndex = allItems.findIndex(item => item.id === editingItemId)
-        const topPosition = itemIndex * 48 + 48 // 追加ボタンの高さ + アイテムの高さ * インデックス
+        const topPosition = itemIndex * 48 // アイテムの高さ * インデックス
         
         return (
           <div 
@@ -521,33 +509,6 @@ export const ItemTabBar = ({
         )
       })()}
       
-      {/* ツールチップ */}
-      {tooltip && (
-          <div
-            className="item-tab-tooltip-fixed"
-            style={{
-              position: 'fixed',
-              left: `${tooltip.x}px`,
-              top: `${tooltip.y}px`,
-              transform: 'translateY(-50%)',
-              pointerEvents: 'none',
-              zIndex: 10000,
-              marginLeft: 0
-            }}
-            onMouseEnter={() => {
-              // ツールチップ上にマウスがある場合は非表示にしない
-              if (tooltipTimeoutRef.current) {
-                clearTimeout(tooltipTimeoutRef.current)
-                tooltipTimeoutRef.current = null
-              }
-            }}
-            onMouseLeave={() => {
-              setTooltip(null)
-            }}
-          >
-            {tooltip.text}
-          </div>
-      )}
     </div>
   )
 }
