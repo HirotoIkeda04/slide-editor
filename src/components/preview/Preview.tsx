@@ -3,12 +3,13 @@ import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
-import type { Slide, SlideFormat, Tone, SlideLayout, Item, TableItem } from '../../types'
+import type { Slide, SlideFormat, Tone, SlideLayout, Item, TableItem, ImpressionCode, ImpressionStyleVars } from '../../types'
 import { CodeBlock } from '../code/CodeBlock'
 import { TableChart } from '../chart/TableChart'
 import { convertKeyMessageToHTML, splitContentByH2, hasMultipleH2, expandItemReferences, extractImagesFromContent } from '../../utils/markdown'
 import { getItemByName, getItemById, itemToMarkdown } from '../../utils/items'
 import { formatConfigs, fontConfigs } from '../../constants/formatConfigs'
+import { generateStyleVars } from '../../utils/impressionStyle'
 import './Preview.css'
 
 interface PreviewProps {
@@ -16,6 +17,8 @@ interface PreviewProps {
   currentIndex: number
   currentFormat: SlideFormat
   currentTone: Tone
+  impressionCode?: ImpressionCode // 印象コード（新システム）
+  styleOverrides?: Partial<ImpressionStyleVars> // スタイルオーバーライド
   previewRef: React.RefObject<HTMLDivElement | null>
   items: Item[]
   isSlideShow?: boolean // スライドショー表示かどうか
@@ -42,7 +45,7 @@ const getLayoutClasses = (layout: SlideLayout | undefined): string => {
   }
 }
 
-export const Preview = ({ slides, currentIndex, currentFormat, currentTone, previewRef, items, isSlideShow = false, isThumbnail = false, thumbnailHeight, onNavigate, onStartSlideShow }: PreviewProps) => {
+export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impressionCode, styleOverrides, previewRef, items, isSlideShow = false, isThumbnail = false, thumbnailHeight, onNavigate, onStartSlideShow }: PreviewProps) => {
   const [scale, setScale] = useState(0.3) // 初期スケールを適切な値に設定（計算完了まで適度なサイズで表示）
   const containerRef = useRef<HTMLDivElement>(null)
   const slideRef = useRef<HTMLDivElement>(null)
@@ -54,6 +57,24 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, prev
   
   // currentIndexRefを常に最新の値に更新
   currentIndexRef.current = currentIndex
+
+  // 印象コードからスタイル変数を生成（オーバーライド適用）
+  const impressionStyles = useMemo(() => {
+    if (impressionCode) {
+      const base = generateStyleVars(impressionCode)
+      if (styleOverrides) {
+        const merged = { ...base, ...styleOverrides }
+        // fontFamilyがオーバーライドされていて、fontFamilyHeadingがオーバーライドされていない場合、
+        // 見出しにもfontFamilyを適用する
+        if (styleOverrides.fontFamily && !styleOverrides.fontFamilyHeading) {
+          merged.fontFamilyHeading = styleOverrides.fontFamily
+        }
+        return merged
+      }
+      return base
+    }
+    return null
+  }, [impressionCode, styleOverrides])
 
   // スライドの固定サイズを取得
   const slideSize = formatConfigs[currentFormat]
@@ -600,6 +621,21 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, prev
   const splitResult = shouldUseGridLayout ? splitContentByH2(contentWithPlaceholders) : null
   const h1SectionContent = splitResult ? convertKeyMessageToHTML(splitResult.h1Section) : null
   const h2SectionsContent = splitResult && splitResult.h2Sections.length >= 2 ? splitResult.h2Sections.map(sec => convertKeyMessageToHTML(sec)) : null
+  const h2Ratios = splitResult?.h2Ratios ?? []
+  
+  // 比率からgrid-template-columnsを生成
+  const generateGridTemplateColumns = (ratios: (number | null)[], sectionCount: number): string => {
+    if (ratios.length === 0 || sectionCount === 0) {
+      // フォールバック: 均等分割
+      return `repeat(${Math.min(sectionCount, 4)}, 1fr)`
+    }
+    
+    // 各カラムの比率を決定（nullは1として扱う）
+    const effectiveRatios = ratios.slice(0, sectionCount).map(r => r ?? 1)
+    
+    // fr単位で指定
+    return effectiveRatios.map(r => `${r}fr`).join(' ')
+  }
 
   // スライドのボーダー色をトーンに応じて決定
   const getBorderColor = () => {
@@ -664,14 +700,34 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, prev
     transition: isThumbnail ? 'none' : 'transform 0.2s ease-out, border-width 0.2s ease-out',
     flexShrink: 0, // スケーリング時に縮小されないように
     border: isThumbnail ? 'none' : `${borderWidth}px solid ${getBorderColor()}`,
-    borderRadius: isThumbnail ? '0' : '4px',
+    borderRadius: isThumbnail ? '0' : (impressionStyles?.borderRadius || '4px'),
     boxShadow: isThumbnail ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.1)',
+    // 印象コードからのスタイル適用
+    backgroundColor: impressionStyles?.background || '#f5f5f5',
+    color: impressionStyles?.text || '#1f2937',
+    fontFamily: impressionStyles?.fontFamily || fontFamily,
     // CSS変数を設定してフォントサイズとフォントファミリーを動的に適用
     '--base-font-size': `${baseFontSize}px`,
     '--heading-font-size': `${headingFontSize}px`,
     '--key-message-font-size': `${keyMessageFontSize}px`,
     '--code-font-size': `${codeFontSize}px`,
-    '--font-family': fontFamily,
+    '--font-family': impressionStyles?.fontFamily || fontFamily,
+    // 印象コードCSS変数
+    '--tone-primary': impressionStyles?.primary || '#3B82F6',
+    '--tone-primary-light': impressionStyles?.primaryLight || '#60A5FA',
+    '--tone-primary-dark': impressionStyles?.primaryDark || '#2563EB',
+    '--tone-background': impressionStyles?.background || '#f5f5f5',
+    '--tone-background-alt': impressionStyles?.backgroundAlt || '#e5e5e5',
+    '--tone-text': impressionStyles?.text || '#1f2937',
+    '--tone-text-muted': impressionStyles?.textMuted || '#6b7280',
+    '--tone-accent': impressionStyles?.accent || '#F59E0B',
+    '--tone-font-family': impressionStyles?.fontFamily || fontFamily,
+    '--tone-font-family-heading': impressionStyles?.fontFamilyHeading || impressionStyles?.fontFamily || fontFamily,
+    '--tone-font-weight': impressionStyles?.fontWeight?.toString() || '400',
+    '--tone-font-weight-heading': impressionStyles?.fontWeightHeading?.toString() || '600',
+    '--tone-letter-spacing': impressionStyles?.letterSpacing || '0',
+    '--tone-border-radius': impressionStyles?.borderRadius || '4px',
+    '--tone-spacing': impressionStyles?.spacing || '1rem',
   } as React.CSSProperties
 
   if (currentFormat === 'instapost') {
@@ -700,7 +756,7 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, prev
           data-slide-element="true"
         >
           <div 
-            className={`instapost-inner tone-${currentTone} ${
+            className={`instapost-inner ${
             layout === 'cover' || layout === 'section' ? 'flex items-start justify-center' : ''
             } ${isThumbnail ? 'instapost-inner-thumbnail' : ''}`}
             data-slide-content="true"
@@ -765,12 +821,7 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, prev
     >
       <div
         ref={slideRef}
-        className={`tone-${currentTone} ${currentFormat === 'instastory' ? 'text-center' : ''} ${
-          currentTone === 'simple' ? 'bg-tone-simple' :
-          currentTone === 'casual' ? 'bg-tone-casual' :
-          currentTone === 'luxury' ? 'bg-tone-luxury' :
-          'bg-tone-warm'
-        } p-12 ${
+        className={`${currentFormat === 'instastory' ? 'text-center' : ''} p-12 ${
           layout === 'cover' || layout === 'section' ? 'flex items-start justify-center' : ''
         }`}
         style={slideStyle}
@@ -792,7 +843,7 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, prev
             <div 
               className="h2-grid-layout"
               style={{
-                gridTemplateColumns: `repeat(${Math.min(h2SectionsContent.length, 4)}, 1fr)`
+                gridTemplateColumns: generateGridTemplateColumns(h2Ratios, h2SectionsContent.length)
               }}
             >
               {h2SectionsContent.map((section, idx) => (

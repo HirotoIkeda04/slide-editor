@@ -1,5 +1,5 @@
 import type { ConsoleMessage } from '../types'
-import { calculateHeadingLength } from './markdown'
+import { calculateHeadingLength, parseColumnRatio } from './markdown'
 import { parseAttributeFromLine } from './attributes'
 
 export const generateConsoleMessages = (
@@ -34,6 +34,24 @@ export const generateConsoleMessages = (
     if (attribute === '#' || attribute === '##' || attribute === '###') {
       // [レイアウトタイプ] を除去してから文字数をカウント
       let headingText = textWithoutAttribute.replace(/^\[[^\]]+\]\s*/, '')
+      
+      // H2/H3の比率指定をチェック
+      if (attribute === '##' || attribute === '###') {
+        const ratioResult = parseColumnRatio(line)
+        
+        // 比率構文があるが無効な値の場合はエラー
+        if (ratioResult.hasRatioSyntax && ratioResult.ratio === null && ratioResult.rawValue !== null) {
+          messages.push({
+            type: 'error',
+            message: `無効な比率指定 {${ratioResult.rawValue}}（正の実数を指定してください）`,
+            line: idx + 1
+          })
+        }
+        
+        // 比率指定を除去してから文字数カウント
+        headingText = ratioResult.title.replace(/^\[[^\]]+\]\s*/, '')
+      }
+      
       const length = calculateHeadingLength(headingText)
       if (length > 13) {
         messages.push({

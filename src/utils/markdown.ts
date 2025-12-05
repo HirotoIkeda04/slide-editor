@@ -242,15 +242,28 @@ export const splitSlidesByHeading = (
   return slides.filter(slide => slide.trim().length > 0 || !firstHeadingFound)
 }
 
+/**
+ * splitContentByH2の戻り値の型
+ */
+export interface SplitContentByH2Result {
+  h1Section: string
+  h2Sections: string[]
+  h2Ratios: (number | null)[]  // 各H2セクションの比率（省略時はnull）
+  ratioErrors: Array<{ rawValue: string; lineNumber: number }>  // 不正な比率指定のエラー情報
+}
+
 // スライドコンテンツをh2で分割する関数（横並び表示用）
 // h1とその後のコンテンツは最初のセクションとして返し、h2セクションのみを横並びにする
-export const splitContentByH2 = (content: string): { h1Section: string; h2Sections: string[] } => {
+export const splitContentByH2 = (content: string): SplitContentByH2Result => {
   const lines = content.split('\n')
   const h2Sections: string[] = []
+  const h2Ratios: (number | null)[] = []
+  const ratioErrors: Array<{ rawValue: string; lineNumber: number }> = []
   let h1Section: string[] = []
   let currentH2Section: string[] = []
   let h2Count = 0
   let h1Found = false
+  let currentH2Ratio: number | null = null
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -265,16 +278,33 @@ export const splitContentByH2 = (content: string): { h1Section: string; h2Sectio
         // 2つ目のh1が見つかった場合は、現在のh2セクションを保存して終了
         if (currentH2Section.length > 0) {
           h2Sections.push(currentH2Section.join('\n'))
+          h2Ratios.push(currentH2Ratio)
         }
         break
       }
-    } else if (trimmed.match(/^##\s+/)) {
+    } else if (trimmed.match(/^##(\s|$)/)) {
       // h2を見つけたら、現在のh2セクションを保存して新しいh2セクションを開始
+      // 空のH2（##のみ）も含める
       h2Count++
       if (currentH2Section.length > 0) {
         h2Sections.push(currentH2Section.join('\n'))
+        h2Ratios.push(currentH2Ratio)
       }
-      currentH2Section = [line]
+      
+      // 比率指定をパース
+      const ratioResult = parseColumnRatio(line)
+      currentH2Ratio = ratioResult.ratio
+      
+      // エラーがある場合は記録
+      if (ratioResult.hasRatioSyntax && ratioResult.ratio === null && ratioResult.rawValue !== null) {
+        ratioErrors.push({
+          rawValue: ratioResult.rawValue,
+          lineNumber: i + 1  // 1-based line number
+        })
+      }
+      
+      // 比率指定を除去した行を追加
+      currentH2Section = [removeColumnRatioFromLine(line)]
     } else {
       // h1が見つかる前のコンテンツはh1セクションに、h2が見つかった後はh2セクションに追加
       if (!h1Found) {
@@ -290,22 +320,27 @@ export const splitContentByH2 = (content: string): { h1Section: string; h2Sectio
   // 最後のh2セクションを追加
   if (currentH2Section.length > 0) {
     h2Sections.push(currentH2Section.join('\n'))
+    h2Ratios.push(currentH2Ratio)
   }
   
   return {
     h1Section: h1Section.join('\n'),
-    h2Sections: h2Count >= 2 ? h2Sections : []
+    h2Sections: h2Count >= 2 ? h2Sections : [],
+    h2Ratios: h2Count >= 2 ? h2Ratios : [],
+    ratioErrors
   }
 }
 
 // スライド内に複数のh2があるかチェックする関数
+// 空のH2（##のみ）も含めてカウント
 export const hasMultipleH2 = (content: string): boolean => {
   const lines = content.split('\n')
   let h2Count = 0
   
   for (const line of lines) {
     const trimmed = line.trim()
-    if (trimmed.match(/^##\s+/)) {
+    // ##の後に空白があるか、##のみの場合もマッチ
+    if (trimmed.match(/^##(\s|$)/)) {
       h2Count++
       if (h2Count >= 2) {
         return true
@@ -342,5 +377,137 @@ export const expandItemReferences = (
 // アイテム参照があるかチェックする関数
 export const hasItemReferences = (content: string): boolean => {
   return /@([^\s@]+)/.test(content)
+}
+
+// ============================================
+// カラム比率指定機能
+// ============================================
+
+/**
+ * 比率指定のパース結果
+ */
+export interface ColumnRatioParseResult {
+  ratio: number | null  // 有効な比率値、無効な場合はnull
+  rawValue: string | null  // 元の値（エラー表示用）
+  title: string  // 比率指定を除いたタイトル
+  hasRatioSyntax: boolean  // 比率構文が存在したか
+}
+
+/**
+ * H2/H3行から比率指定をパースする
+ * 
+ * @param line - パースする行（例: "## {2} タイトル"）
+ * @returns パース結果
+ */
+export const parseColumnRatio = (line: string): ColumnRatioParseResult => {
+  const trimmed = line.trim()
+  
+  // H2またはH3の比率指定パターン: ## {数値} タイトル または ### {数値} タイトル
+  const ratioPattern = /^(#{2,3})\s+\{([^}]*)\}\s*(.*)$/
+  const match = trimmed.match(ratioPattern)
+  
+  if (!match) {
+    // 比率指定がない場合
+    // タイトル部分を抽出（## または ### を除去）
+    // 空のH2/H3（##のみ）も対応
+    const titleMatch = trimmed.match(/^#{2,3}(?:\s+(.*))?$/)
+    return {
+      ratio: null,
+      rawValue: null,
+      title: titleMatch && titleMatch[1] ? titleMatch[1] : '',
+      hasRatioSyntax: false
+    }
+  }
+  
+  const rawValue = match[2]
+  const title = match[3] || ''
+  
+  // 空の指定 {} の場合
+  if (rawValue.trim() === '') {
+    return {
+      ratio: null,
+      rawValue: rawValue,
+      title: title,
+      hasRatioSyntax: true
+    }
+  }
+  
+  // 正の実数かどうかを検証
+  // 許容: 0.5, 1, 1.5, 2, 2.5 など
+  // 不許容: 0, -1, abc, 1.2.3 など
+  const numValue = parseFloat(rawValue.trim())
+  
+  if (isNaN(numValue) || numValue <= 0 || !isFinite(numValue)) {
+    return {
+      ratio: null,
+      rawValue: rawValue,
+      title: title,
+      hasRatioSyntax: true
+    }
+  }
+  
+  // 追加の検証: 文字列として正しい数値形式か
+  const validNumberPattern = /^(?:0|[1-9]\d*)(?:\.\d+)?$/
+  if (!validNumberPattern.test(rawValue.trim())) {
+    return {
+      ratio: null,
+      rawValue: rawValue,
+      title: title,
+      hasRatioSyntax: true
+    }
+  }
+  
+  return {
+    ratio: numValue,
+    rawValue: rawValue,
+    title: title,
+    hasRatioSyntax: true
+  }
+}
+
+/**
+ * 比率指定が有効かどうかを検証する
+ * 
+ * @param rawValue - 検証する値
+ * @returns 有効な場合は比率値、無効な場合はnull
+ */
+export const validateColumnRatio = (rawValue: string): number | null => {
+  if (!rawValue || rawValue.trim() === '') {
+    return null
+  }
+  
+  const numValue = parseFloat(rawValue.trim())
+  
+  if (isNaN(numValue) || numValue <= 0 || !isFinite(numValue)) {
+    return null
+  }
+  
+  // 追加の検証: 文字列として正しい数値形式か
+  const validNumberPattern = /^(?:0|[1-9]\d*)(?:\.\d+)?$/
+  if (!validNumberPattern.test(rawValue.trim())) {
+    return null
+  }
+  
+  return numValue
+}
+
+/**
+ * H2/H3行から比率指定を除去したコンテンツを返す
+ * 
+ * @param line - 処理する行
+ * @returns 比率指定を除去した行
+ */
+export const removeColumnRatioFromLine = (line: string): string => {
+  const trimmed = line.trim()
+  
+  // H2またはH3の比率指定パターン
+  const ratioPattern = /^(#{2,3})\s+\{[^}]*\}\s*(.*)$/
+  const match = trimmed.match(ratioPattern)
+  
+  if (match) {
+    return `${match[1]} ${match[2]}`
+  }
+  
+  return line
 }
 
