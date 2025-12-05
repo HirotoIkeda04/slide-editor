@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react'
-import type { Slide, SlideFormat, Tone, Item } from '../../types'
+import type { Slide, SlideFormat, Tone, Item, ImpressionCode, ImpressionStyleVars } from '../../types'
 import { extractSlideTitle } from '../../utils/markdown'
 import { Preview } from '../preview/Preview'
 
@@ -8,11 +8,13 @@ interface SlideCarouselProps {
   currentIndex: number
   currentFormat: SlideFormat
   currentTone: Tone
+  impressionCode?: ImpressionCode
+  styleOverrides?: Partial<ImpressionStyleVars>
   items: Item[]
   setCurrentIndex: (index: number) => void
 }
 
-export const SlideCarousel = ({ slides, currentIndex, currentFormat, currentTone, items, setCurrentIndex }: SlideCarouselProps) => {
+export const SlideCarousel = ({ slides, currentIndex, currentFormat, currentTone, impressionCode, styleOverrides, items, setCurrentIndex }: SlideCarouselProps) => {
   const carouselRef = useRef<HTMLDivElement>(null)
 
   // 選択中のスライドがカルーセルに表示されるようにスクロール位置を調整
@@ -131,7 +133,7 @@ export const SlideCarousel = ({ slides, currentIndex, currentFormat, currentTone
                       width: `${slideWidth}px`,
                       height: `${slideHeight}px`,
                       borderWidth: idx === currentIndex ? '3px' : '1px',
-                      borderColor: idx === currentIndex ? '#d4a574' : '#d1d5db',
+                      borderColor: idx === currentIndex ? '#C4A584' : '#d1d5db',
                       backgroundColor: '#ffffff',
                       padding: 0
                     }}
@@ -144,6 +146,8 @@ export const SlideCarousel = ({ slides, currentIndex, currentFormat, currentTone
                         currentIndex={0}
                         currentFormat={currentFormat}
                         currentTone={currentTone}
+                        impressionCode={impressionCode}
+                        styleOverrides={styleOverrides}
                         previewRef={{ current: null }}
                         items={items}
                         isThumbnail={true}
@@ -156,7 +160,7 @@ export const SlideCarousel = ({ slides, currentIndex, currentFormat, currentTone
                     className="text-left text-sm w-full"
                     style={{ 
                       marginTop: '4px',
-                      color: idx === currentIndex ? '#d4a574' : '#6b7280',
+                      color: idx === currentIndex ? '#F5E6D3' : '#6b7280',
                       fontSize: '12px',
                       lineHeight: '1.4',
                       overflow: 'hidden',

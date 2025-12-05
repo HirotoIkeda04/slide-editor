@@ -61,12 +61,12 @@
 }
 
 .floating-nav-bar-btn.active {
-  background-color: #d4a574;
+  background-color: #C4A584;
   color: #1a1a1a;
 }
 
 .floating-nav-bar-btn.active:hover {
-  background-color: #e0b485;
+  background-color: #d4b594;
 }
 
 .floating-nav-bar-btn:disabled {

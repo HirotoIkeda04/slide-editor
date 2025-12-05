@@ -174,6 +174,22 @@ export const Editor = ({
       return
     }
 
+    // Delete or Backspace with selection in input field
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selectionStart !== selectionEnd) {
+      e.preventDefault()
+      const beforeSelection = value.slice(0, selectionStart || 0)
+      const afterSelection = value.slice(selectionEnd || 0)
+      const indent = getLeadingWhitespace(lines[lineIndex].text)
+      handleTextChange(lineIndex, indent + beforeSelection + afterSelection)
+      setTimeout(() => {
+        const input = inputRefs.current[lineIndex]
+        if (input) {
+          input.setSelectionRange(selectionStart || 0, selectionStart || 0)
+        }
+      }, 0)
+      return
+    }
+
     // Backspace at start of text content
     if (e.key === 'Backspace' && selectionStart === 0 && selectionEnd === 0) {
       e.preventDefault()
@@ -285,6 +301,48 @@ export const Editor = ({
       })
       return
     }
+
+    // Cmd+B or Ctrl+B - bold selection in input field
+    // Only process if there's no global selection (global selection takes priority)
+    if ((e.metaKey || e.ctrlKey) && e.key === 'b' && selectionStart !== selectionEnd && !selection) {
+      e.preventDefault()
+      const indent = getLeadingWhitespace(lines[lineIndex].text)
+      const indentLength = indent.length
+      const selectedText = value.slice(selectionStart || 0, selectionEnd || 0)
+      
+      // Check if already bold (surrounded by **)
+      const isBold = selectedText.startsWith('**') && selectedText.endsWith('**') && selectedText.length >= 4
+      
+      if (isBold) {
+        // Remove **
+        const unboldedText = selectedText.slice(2, -2)
+        const beforeSelection = value.slice(0, selectionStart || 0)
+        const afterSelection = value.slice(selectionEnd || 0)
+        handleTextChange(lineIndex, indent + beforeSelection + unboldedText + afterSelection)
+        setTimeout(() => {
+          const input = inputRefs.current[lineIndex]
+          if (input) {
+            const newCursorPos = (selectionStart || 0) + unboldedText.length
+            input.setSelectionRange(newCursorPos, newCursorPos)
+          }
+        }, 0)
+      } else {
+        // Add **
+        const boldedText = '**' + selectedText + '**'
+        const beforeSelection = value.slice(0, selectionStart || 0)
+        const afterSelection = value.slice(selectionEnd || 0)
+        handleTextChange(lineIndex, indent + beforeSelection + boldedText + afterSelection)
+        setTimeout(() => {
+          const input = inputRefs.current[lineIndex]
+          if (input) {
+            const newSelectionStart = (selectionStart || 0) + 2
+            const newSelectionEnd = newSelectionStart + selectedText.length
+            input.setSelectionRange(newSelectionStart, newSelectionEnd)
+          }
+        }, 0)
+      }
+      return
+    }
   }, [lines, setLines, isComposing, focusLine, handleTextChange])
 
   // Handle focus on a line
@@ -301,6 +359,92 @@ export const Editor = ({
     }
     // 属性値 + 半角スペース1つ
     return attribute + ' '
+  }
+  
+  // Get CSS class for attribute display based on attribute type
+  const getAttributeDisplayClass = (attribute: string | null): string => {
+    if (!attribute) {
+      return ''
+    }
+    if (attribute.startsWith('#')) {
+      return 'editor-attribute-heading'
+    }
+    if (attribute === '!') {
+      return 'editor-attribute-key-message'
+    }
+    return ''
+  }
+  
+  // テキスト内容をシンタックスハイライト用のReact要素に変換
+  const renderSyntaxHighlight = (text: string): JSX.Element => {
+    const parts: Array<{ text: string; className?: string }> = []
+    let lastIndex = 0
+    
+    // レイアウトタイプ: [表紙] [目次] [まとめ] - 紫
+    const layoutPattern = /(\[[表紙目次まとめ]+\])/g
+    let match
+    const layoutMatches: Array<{ index: number; length: number }> = []
+    while ((match = layoutPattern.exec(text)) !== null) {
+      layoutMatches.push({ index: match.index, length: match[0].length })
+    }
+    
+    // 比率・配置指定: {2} {mid} {2 mid} - オレンジ
+    const ratioPattern = /\{([^}]+)\}/g
+    const ratioMatches: Array<{ index: number; length: number }> = []
+    while ((match = ratioPattern.exec(text)) !== null) {
+      ratioMatches.push({ index: match.index, length: match[0].length })
+    }
+    
+    // アイテム参照: @アイテム名 または [[sheet:xxx]] - 緑
+    const itemPattern1 = /@([^\s@]+)/g
+    const itemPattern2 = /\[\[sheet:([^\]]+)\]\]/g
+    const itemMatches: Array<{ index: number; length: number }> = []
+    while ((match = itemPattern1.exec(text)) !== null) {
+      itemMatches.push({ index: match.index, length: match[0].length })
+    }
+    while ((match = itemPattern2.exec(text)) !== null) {
+      itemMatches.push({ index: match.index, length: match[0].length })
+    }
+    
+    // すべてのマッチをインデックス順にソート
+    const allMatches = [
+      ...layoutMatches.map(m => ({ ...m, className: 'editor-syntax-layout-type' })),
+      ...ratioMatches.map(m => ({ ...m, className: 'editor-syntax-ratio-spec' })),
+      ...itemMatches.map(m => ({ ...m, className: 'editor-syntax-item-ref' }))
+    ].sort((a, b) => a.index - b.index)
+    
+    // 重複を除去（最初のマッチを優先）
+    const uniqueMatches: Array<{ index: number; length: number; className: string }> = []
+    for (const m of allMatches) {
+      const overlaps = uniqueMatches.some(
+        um => m.index < um.index + um.length && m.index + m.length > um.index
+      )
+      if (!overlaps) {
+        uniqueMatches.push(m)
+      }
+    }
+    
+    // テキストを分割してパーツを作成
+    for (const m of uniqueMatches) {
+      if (m.index > lastIndex) {
+        parts.push({ text: text.substring(lastIndex, m.index) })
+      }
+      parts.push({ text: text.substring(m.index, m.index + m.length), className: m.className })
+      lastIndex = m.index + m.length
+    }
+    if (lastIndex < text.length) {
+      parts.push({ text: text.substring(lastIndex) })
+    }
+    
+    return (
+      <span className="editor-syntax-overlay">
+        {parts.map((part, idx) => (
+          <span key={idx} className={part.className}>
+            {part.text}
+          </span>
+        ))}
+      </span>
+    )
   }
 
   // Extract leading whitespace (tabs/spaces) from text
@@ -547,23 +691,22 @@ export const Editor = ({
     navigator.clipboard.writeText(text)
   }, [selection, lines])
 
-  // Handle cut
-  const handleCut = useCallback(() => {
-    handleCopy()
+  // Handle delete selection (without copying to clipboard)
+  const handleDeleteSelection = useCallback(() => {
     if (!selection) return
 
     const { startLine, startChar, endLine, endChar } = selection
     const newLines = [...lines]
 
     if (startLine === endLine) {
-      // Single line cut
+      // Single line delete
       const line = newLines[startLine]
       newLines[startLine] = {
         ...line,
         text: line.text.slice(0, startChar) + line.text.slice(endChar),
       }
-        } else {
-      // Multi-line cut
+    } else {
+      // Multi-line delete
       const firstLine = newLines[startLine]
       const lastLine = newLines[endLine]
       newLines[startLine] = {
@@ -577,7 +720,101 @@ export const Editor = ({
     setSelection(null)
     setCurrentLineIndex(startLine)
     setTimeout(() => focusLine(startLine, startChar), 0)
-  }, [selection, lines, setLines, handleCopy, focusLine])
+  }, [selection, lines, setLines, focusLine])
+
+  // Handle bold formatting (toggle ** around selection)
+  const handleBold = useCallback(() => {
+    if (!selection) return
+
+    const { startLine, startChar, endLine, endChar } = selection
+    const newLines = [...lines]
+
+    if (startLine === endLine) {
+      // Single line bold
+      const line = newLines[startLine]
+      const selectedText = line.text.slice(startChar, endChar)
+      
+      // Check if already bold (surrounded by **)
+      const isBold = selectedText.startsWith('**') && selectedText.endsWith('**') && selectedText.length >= 4
+      
+      if (isBold) {
+        // Remove **
+        const unboldedText = selectedText.slice(2, -2)
+        newLines[startLine] = {
+          ...line,
+          text: line.text.slice(0, startChar) + unboldedText + line.text.slice(endChar),
+        }
+        // Clear selection after unbolding
+        setSelection(null)
+      } else {
+        // Add **
+        const boldedText = '**' + selectedText + '**'
+        newLines[startLine] = {
+          ...line,
+          text: line.text.slice(0, startChar) + boldedText + line.text.slice(endChar),
+        }
+        // Update selection to include the ** markers
+        setSelection({
+          startLine,
+          startChar,
+          endLine,
+          endChar: startChar + boldedText.length,
+        })
+      }
+    } else {
+      // Multi-line bold - apply to each line's selected portion
+      let totalAddedChars = 0
+      for (let i = startLine; i <= endLine; i++) {
+        const line = newLines[i]
+        let lineStart = 0
+        let lineEnd = line.text.length
+        
+        if (i === startLine) lineStart = startChar
+        if (i === endLine) lineEnd = endChar
+        
+        const selectedText = line.text.slice(lineStart, lineEnd)
+        const isBold = selectedText.startsWith('**') && selectedText.endsWith('**') && selectedText.length >= 4
+        
+        if (isBold) {
+          const unboldedText = selectedText.slice(2, -2)
+          newLines[i] = {
+            ...line,
+            text: line.text.slice(0, lineStart) + unboldedText + line.text.slice(lineEnd),
+          }
+          if (i === endLine) {
+            totalAddedChars -= 4 // Removed **
+          }
+        } else {
+          const boldedText = '**' + selectedText + '**'
+          newLines[i] = {
+            ...line,
+            text: line.text.slice(0, lineStart) + boldedText + line.text.slice(lineEnd),
+          }
+          if (i === endLine) {
+            totalAddedChars += 4 // Added **
+          }
+        }
+      }
+      
+      // Update selection end position
+      setSelection({
+        startLine,
+        startChar,
+        endLine,
+        endChar: endChar + totalAddedChars,
+      })
+    }
+
+    setLines(newLines)
+    setCurrentLineIndex(startLine)
+    setTimeout(() => focusLine(startLine, startChar), 0)
+  }, [selection, lines, setLines, focusLine])
+
+  // Handle cut
+  const handleCut = useCallback(() => {
+    handleCopy()
+    handleDeleteSelection()
+  }, [handleCopy, handleDeleteSelection])
 
   // Handle paste
   const handlePaste = useCallback(async () => {
@@ -662,9 +899,23 @@ export const Editor = ({
     }
   }, [selection, lines, setLines, currentLineIndex, focusLine])
 
-  // Handle keyboard shortcuts for copy/cut/paste
+  // Handle keyboard shortcuts for copy/cut/paste, bold, and delete selection
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Handle Delete/Backspace with global selection
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selection) {
+        e.preventDefault()
+        handleDeleteSelection()
+        return
+      }
+
+      // Handle Bold (Cmd+B or Ctrl+B)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b' && selection) {
+        e.preventDefault()
+        handleBold()
+        return
+      }
+
       if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
         handleCopy()
       } else if ((e.metaKey || e.ctrlKey) && e.key === 'x') {
@@ -676,7 +927,7 @@ export const Editor = ({
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [handleCopy, handleCut, handlePaste])
+  }, [selection, handleCopy, handleCut, handlePaste, handleDeleteSelection, handleBold])
 
   return (
     <div 
@@ -723,13 +974,15 @@ export const Editor = ({
             </span>
 
             {/* Attribute display (inline, next to text) */}
-            <span className="editor-attribute">
+            <span className={`editor-attribute ${getAttributeDisplayClass(line.attribute)}`}>
               {getAttributeDisplay(line.attribute)}
             </span>
 
             {/* Text input with selection highlight (without leading whitespace) */}
             <div className="editor-text-wrapper">
               {renderSelectionHighlight(idx, getTextWithoutLeadingWhitespace(line.text))}
+              {/* シンタックスハイライトのオーバーレイ */}
+              {renderSyntaxHighlight(getTextWithoutLeadingWhitespace(line.text))}
               <input
                 ref={(el) => { inputRefs.current[idx] = el }}
                 type="text"

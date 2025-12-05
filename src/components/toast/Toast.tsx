@@ -31,13 +31,38 @@ export const Toast = ({ messages }: ToastProps) => {
     setCurrentIndex((prev) => (prev < messages.length - 1 ? prev + 1 : 0))
   }
 
+  // メッセージタイプに応じたスタイルを決定
+  const getMessageStyle = () => {
+    switch (currentMessage.type) {
+      case 'warning':
+        return {
+          backgroundColor: '#2b2b2b',
+          borderColor: '#F5E6D3',
+          color: '#F5E6D3',
+        }
+      case 'error':
+        return {
+          backgroundColor: '#2b2b2b',
+          borderColor: '#ff7373',
+          color: '#ff7373',
+        }
+      case 'info':
+      default:
+        return {
+          backgroundColor: '#2b2b2b',
+          borderColor: '#82aaff',
+          color: '#82aaff',
+        }
+    }
+  }
+
+  const messageStyle = getMessageStyle()
+
   return (
     <div
       className="border flex items-center gap-1"
       style={{
-        backgroundColor: '#2b2b2b',
-        borderColor: '#3a3a3a',
-        color: '#ff7373',
+        ...messageStyle,
         fontSize: '10px',
         padding: '6px 10px',
         borderRadius: '8px',
@@ -89,7 +114,7 @@ export const Toast = ({ messages }: ToastProps) => {
 
       {/* メッセージ */}
       <div className="flex-1 flex items-center gap-2" style={{ marginLeft: hasMultiple ? '8px' : '0', minWidth: 0 }}>
-        <span className="font-mono" style={{ color: '#ff8f8f', fontSize: '10px', flexShrink: 0 }}>
+        <span className="font-mono" style={{ color: messageStyle.color, fontSize: '10px', flexShrink: 0 }}>
           L{currentMessage.line}
         </span>
         <span 
@@ -97,6 +122,7 @@ export const Toast = ({ messages }: ToastProps) => {
           style={{ 
             fontSize: '10px',
             wordBreak: 'break-word',
+            color: messageStyle.color,
           }}
         >
           {currentMessage.message}

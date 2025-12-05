@@ -80,6 +80,58 @@
   white-space: pre;
 }
 
+/* シンタックスハイライト: 見出し記号 */
+.editor-attribute-heading {
+  color: #e5c07b; /* 黄色/ベージュ */
+}
+
+/* シンタックスハイライト: レイアウトタイプ（属性表示部分では使用しないが、将来の拡張用） */
+.editor-text-layout-type {
+  color: #c678dd; /* 紫 */
+}
+
+/* シンタックスハイライト: 比率・配置指定 */
+.editor-text-ratio-spec {
+  color: #d19a66; /* オレンジ */
+}
+
+/* シンタックスハイライト: キーメッセージ */
+.editor-attribute-key-message {
+  color: #e5c07b; /* 黄色 */
+}
+
+/* シンタックスハイライト: テキスト内容のオーバーレイ */
+.editor-syntax-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 18px;
+  line-height: 18px;
+  pointer-events: none;
+  z-index: 1;
+  white-space: pre;
+  font-family: inherit;
+  font-size: inherit;
+  color: #e5e7eb; /* デフォルトのテキスト色 */
+  overflow: hidden;
+}
+
+/* シンタックスハイライト: レイアウトタイプ */
+.editor-syntax-layout-type {
+  color: #c678dd; /* 紫 */
+}
+
+/* シンタックスハイライト: 比率・配置指定 */
+.editor-syntax-ratio-spec {
+  color: #d19a66; /* オレンジ */
+}
+
+/* シンタックスハイライト: アイテム参照 */
+.editor-syntax-item-ref {
+  color: #98c379; /* 緑 */
+}
+
 /* Text Input Wrapper */
 .editor-text-wrapper {
   position: relative;
@@ -107,12 +159,12 @@
   border: none;
   outline: none;
   background: transparent;
-  color: #e5e7eb;
+  color: transparent; /* テキストを透明にして、オーバーレイの色だけを表示 */
   font-family: inherit;
   font-size: inherit;
-  caret-color: #d4a574;
+  caret-color: #F5E6D3;
   position: relative;
-  z-index: 1;
+  z-index: 2; /* シンタックスハイライトの上に表示 */
 }
 
 .editor-text-input:focus {

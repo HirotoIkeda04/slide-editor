@@ -3,14 +3,29 @@ import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
-import type { Slide, SlideFormat, Tone, SlideLayout, Item, TableItem, ImpressionCode, ImpressionStyleVars } from '../../types'
+import type { Slide, SlideFormat, Tone, SlideLayout, Item, TableItem, ImpressionCode, ImpressionStyleVars, GradientConfig } from '../../types'
 import { CodeBlock } from '../code/CodeBlock'
 import { TableChart } from '../chart/TableChart'
-import { convertKeyMessageToHTML, splitContentByH2, hasMultipleH2, expandItemReferences, extractImagesFromContent } from '../../utils/markdown'
+import { convertKeyMessageToHTML, splitContentByH2, hasMultipleH2, expandItemReferences, extractImagesFromContent, extractSectionHeadings, generateTableOfContents } from '../../utils/markdown'
 import { getItemByName, getItemById, itemToMarkdown } from '../../utils/items'
 import { formatConfigs, fontConfigs } from '../../constants/formatConfigs'
 import { generateStyleVars } from '../../utils/impressionStyle'
 import './Preview.css'
+
+// グラデーションをCSS文字列に変換
+const gradientToCSS = (config?: GradientConfig): string => {
+  if (!config?.enabled || config.colors.length < 2) return ''
+  
+  const colorStops = config.colors.map((color, i) => {
+    const position = config.positions?.[i] ?? (i / (config.colors.length - 1)) * 100
+    return `${color} ${position}%`
+  }).join(', ')
+  
+  if (config.type === 'radial') {
+    return `radial-gradient(circle, ${colorStops})`
+  }
+  return `linear-gradient(${config.angle ?? 135}deg, ${colorStops})`
+}
 
 interface PreviewProps {
   slides: Slide[]
@@ -410,10 +425,23 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
 
   // スライドコンテンツを取得（空の場合は空文字列）
   const slideContent = slides.length > 0 ? (slides[currentIndex]?.content || '') : ''
+  const currentSlide = slides.length > 0 ? slides[currentIndex] : null
+  const layout = currentSlide?.layout || 'normal'
+  
+  // 目次レイアウトの場合は、全スライドからセクション見出しを抽出して自動生成
+  const contentForTOC = useMemo(() => {
+    if (layout === 'toc') {
+      // 全スライドのコンテンツを結合してセクション見出しを抽出
+      const allContent = slides.map(s => s.content).join('\n')
+      const sections = extractSectionHeadings(allContent)
+      return generateTableOfContents(sections)
+    }
+    return slideContent
+  }, [layout, slides, slideContent])
   
   // アイテム参照を展開（useMemoでメモ化してitemsの変更を検知）
   const expandedContent = useMemo(() => {
-    const result = expandItemReferences(slideContent, (itemName) => {
+    const result = expandItemReferences(contentForTOC, (itemName) => {
     const item = getItemByName(items, itemName)
       console.log('[Preview] Expanding item reference:', itemName, 'found:', !!item, 'type:', item?.type, 'isSlideShow:', isSlideShow)
     return item ? itemToMarkdown(item) : null
@@ -421,7 +449,7 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
     console.log('[Preview] Expanded content length:', result.length, 'isSlideShow:', isSlideShow, 'items count:', items.length)
     console.log('[Preview] Expanded content contains image markdown:', /!\[.*?\]\(data:image\//.test(result))
     return result
-  }, [slideContent, items, isSlideShow])
+  }, [contentForTOC, items, isSlideShow])
   
   // 画像を抽出（base64 data URLをBlob URLに変換）
   // useMemoを使ってimages配列を安定化し、不要な再生成を防ぐ
@@ -577,13 +605,26 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
     )
   }, [items, currentTone])
   
+  // テキストグラデーションが有効かどうか
+  const hasTextGradient = impressionStyles?.textGradient?.enabled ?? false
+  
   // ReactMarkdownのcomponentsを定義
   const markdownComponents: Components = useMemo(() => ({
     code: CodeBlock,
     img: CustomImage,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     'table-chart': CustomTableChart as any,
-  }), [CustomImage, CustomTableChart])
+    // テキストグラデーション用のカスタム見出しコンポーネント
+    h1: ({ children, ...props }) => (
+      <h1 className={hasTextGradient ? 'text-gradient' : ''} {...props}>{children}</h1>
+    ),
+    h2: ({ children, ...props }) => (
+      <h2 className={hasTextGradient ? 'text-gradient' : ''} {...props}>{children}</h2>
+    ),
+    h3: ({ children, ...props }) => (
+      <h3 className={hasTextGradient ? 'text-gradient' : ''} {...props}>{children}</h3>
+    ),
+  }), [CustomImage, CustomTableChart, hasTextGradient])
   
   // プレースホルダーをMarkdownの画像記法に置き換え（react-markdownが処理できる形式）
   const contentWithImages = useMemo(() => {
@@ -611,8 +652,6 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
     return <p className="text-gray-400">スライドがありません</p>
   }
   
-  const currentSlide = slides[currentIndex]
-  const layout = currentSlide?.layout || 'normal'
   const layoutClasses = getLayoutClasses(layout)
   
   // h1区切りフォーマットで複数のh2がある場合、横並び表示用に分割
@@ -622,6 +661,7 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
   const h1SectionContent = splitResult ? convertKeyMessageToHTML(splitResult.h1Section) : null
   const h2SectionsContent = splitResult && splitResult.h2Sections.length >= 2 ? splitResult.h2Sections.map(sec => convertKeyMessageToHTML(sec)) : null
   const h2Ratios = splitResult?.h2Ratios ?? []
+  const h2Alignments = splitResult?.h2Alignments ?? []
   
   // 比率からgrid-template-columnsを生成
   const generateGridTemplateColumns = (ratios: (number | null)[], sectionCount: number): string => {
@@ -635,6 +675,18 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
     
     // fr単位で指定
     return effectiveRatios.map(r => `${r}fr`).join(' ')
+  }
+  
+  // 配置からalign-selfの値を生成
+  const getAlignmentStyle = (alignment: 'top' | 'mid' | 'btm'): React.CSSProperties => {
+    const alignMap: Record<'top' | 'mid' | 'btm', string> = {
+      top: 'flex-start',
+      mid: 'center',
+      btm: 'flex-end'
+    }
+    return {
+      alignSelf: alignMap[alignment]
+    }
   }
 
   // スライドのボーダー色をトーンに応じて決定
@@ -703,7 +755,11 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
     borderRadius: isThumbnail ? '0' : (impressionStyles?.borderRadius || '4px'),
     boxShadow: isThumbnail ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.1)',
     // 印象コードからのスタイル適用
-    backgroundColor: impressionStyles?.background || '#f5f5f5',
+    // 背景グラデーションが有効な場合はグラデーションを適用、そうでなければ単色
+    ...(impressionStyles?.backgroundGradient?.enabled 
+      ? { background: gradientToCSS(impressionStyles.backgroundGradient) }
+      : { backgroundColor: impressionStyles?.background || '#f5f5f5' }
+    ),
     color: impressionStyles?.text || '#1f2937',
     fontFamily: impressionStyles?.fontFamily || fontFamily,
     // CSS変数を設定してフォントサイズとフォントファミリーを動的に適用
@@ -718,6 +774,7 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
     '--tone-primary-dark': impressionStyles?.primaryDark || '#2563EB',
     '--tone-background': impressionStyles?.background || '#f5f5f5',
     '--tone-background-alt': impressionStyles?.backgroundAlt || '#e5e5e5',
+    '--tone-background-gradient': impressionStyles?.backgroundGradient?.enabled ? gradientToCSS(impressionStyles.backgroundGradient) : '',
     '--tone-text': impressionStyles?.text || '#1f2937',
     '--tone-text-muted': impressionStyles?.textMuted || '#6b7280',
     '--tone-accent': impressionStyles?.accent || '#F59E0B',
@@ -728,7 +785,10 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
     '--tone-letter-spacing': impressionStyles?.letterSpacing || '0',
     '--tone-border-radius': impressionStyles?.borderRadius || '4px',
     '--tone-spacing': impressionStyles?.spacing || '1rem',
-  } as React.CSSProperties
+    // テキストグラデーション用CSS変数
+    '--tone-text-gradient': impressionStyles?.textGradient?.enabled ? gradientToCSS(impressionStyles.textGradient) : '',
+    '--tone-text-gradient-enabled': impressionStyles?.textGradient?.enabled ? '1' : '0',
+  } as unknown as React.CSSProperties
 
   if (currentFormat === 'instapost') {
     return (
@@ -843,20 +903,30 @@ export const Preview = ({ slides, currentIndex, currentFormat, currentTone, impr
             <div 
               className="h2-grid-layout"
               style={{
-                gridTemplateColumns: generateGridTemplateColumns(h2Ratios, h2SectionsContent.length)
+                display: 'grid',
+                gap: '2rem',
+                gridTemplateColumns: generateGridTemplateColumns(h2Ratios, h2SectionsContent.length),
+                alignItems: 'stretch'  // デフォルトはstretch、各アイテムでalign-selfを上書き
               }}
             >
-              {h2SectionsContent.map((section, idx) => (
-                <div key={idx} className="h2-grid-item prose">
-                  <ReactMarkdown
-                    components={markdownComponents}
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
+              {h2SectionsContent.map((section, idx) => {
+                const alignment = h2Alignments[idx] ?? 'top'
+                return (
+                  <div 
+                    key={idx} 
+                    className="h2-grid-item prose"
+                    style={getAlignmentStyle(alignment)}
                   >
-                    {section}
-                  </ReactMarkdown>
-                </div>
-              ))}
+                    <ReactMarkdown
+                      components={markdownComponents}
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                    >
+                      {section}
+                    </ReactMarkdown>
+                  </div>
+                )
+              })}
             </div>
           </div>
         ) : (

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { Slide, SlideFormat, Tone, Item } from '../../types'
+import type { Slide, SlideFormat, Tone, Item, ImpressionCode, ImpressionStyleVars } from '../../types'
 import { Preview } from '../preview/Preview'
 import './SlideShowView.css'
 
@@ -8,6 +8,8 @@ interface SlideShowViewProps {
   currentIndex: number
   currentFormat: SlideFormat
   currentTone: Tone
+  impressionCode?: ImpressionCode
+  styleOverrides?: Partial<ImpressionStyleVars>
   items: Item[]
   onClose: () => void
   onNavigate: (index: number) => void
@@ -18,6 +20,8 @@ export const SlideShowView = ({
   currentIndex,
   currentFormat,
   currentTone,
+  impressionCode,
+  styleOverrides,
   items,
   onClose,
   onNavigate
@@ -126,6 +130,8 @@ export const SlideShowView = ({
           currentIndex={currentIndex}
           currentFormat={currentFormat}
           currentTone={currentTone}
+          impressionCode={impressionCode}
+          styleOverrides={styleOverrides}
           previewRef={previewRef}
           items={items}
           isSlideShow={true}

@@ -1,3 +1,65 @@
+/* ============================================
+   動的トンマナ（印象コードシステム）
+   CSS変数を使用して動的にスタイルを適用
+   ============================================ */
+
+.tone-dynamic {
+  /* CSS変数はインラインスタイルで設定される */
+  background-color: var(--tone-background, #f5f5f5);
+  color: var(--tone-text, #1f2937);
+}
+
+.tone-dynamic .prose {
+  font-family: var(--tone-font-family, system-ui, -apple-system, sans-serif);
+  font-weight: var(--tone-font-weight, 400);
+  letter-spacing: var(--tone-letter-spacing, 0);
+  color: var(--tone-text, #1f2937);
+}
+
+.tone-dynamic .prose h1,
+.tone-dynamic .prose h2,
+.tone-dynamic .prose h3 {
+  font-family: var(--tone-font-family-heading, var(--tone-font-family, system-ui));
+  font-weight: var(--tone-font-weight-heading, 700);
+  color: var(--tone-primary, #3B82F6);
+}
+
+.tone-dynamic .prose a {
+  color: var(--tone-accent, #2563eb);
+}
+
+.tone-dynamic .prose strong {
+  color: var(--tone-primary, #3B82F6);
+}
+
+.tone-dynamic .prose blockquote {
+  border-left: 4px solid var(--tone-accent, #2563eb);
+  background-color: var(--tone-background-alt, #f8f8f8);
+  padding: 0.75em 1em;
+  border-radius: var(--tone-border-radius, 0);
+}
+
+.tone-dynamic .prose code {
+  background-color: var(--tone-background-alt, rgba(0, 0, 0, 0.05));
+  color: var(--tone-primary, #3B82F6);
+  padding: 0.1em 0.3em;
+  border-radius: calc(var(--tone-border-radius, 4px) / 2);
+}
+
+.tone-dynamic .prose ul li::marker,
+.tone-dynamic .prose ol li::marker {
+  color: var(--tone-primary, #3B82F6);
+}
+
+/* 動的トンマナ用の背景色クラス */
+.bg-tone-dynamic {
+  background-color: var(--tone-background, #f5f5f5);
+}
+
+/* ============================================
+   静的トンマナ（後方互換性のため維持）
+   ============================================ */
+
 /* トンマナ: シンプル */
 .tone-simple {
   --tone-primary: #3B82F6;
@@ -126,7 +188,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.35rem 0.6rem;
-  border: 1px solid rgba(212, 165, 116, 0.35);
+  border: 1px solid rgba(245, 230, 211, 0.35);
   background: #1f1f1f;
   color: #f5f5f5;
   border-radius: 0.75rem;
@@ -139,16 +201,16 @@
 }
 
 .tone-chip:hover {
-  background: rgba(212, 165, 116, 0.08);
-  border-color: rgba(212, 165, 116, 0.5);
+  background: rgba(245, 230, 211, 0.08);
+  border-color: rgba(245, 230, 211, 0.5);
   transform: translateY(-1px);
 }
 
 .tone-chip.active {
-  background: rgba(212, 165, 116, 0.18);
-  border-color: #d4a574;
-  color: #d4a574;
-  box-shadow: 0 2px 8px rgba(212, 165, 116, 0.2);
+  background: rgba(196, 165, 132, 0.18);
+  border-color: #C4A584;
+  color: #F5E6D3;
+  box-shadow: 0 2px 8px rgba(196, 165, 132, 0.2);
 }
 
 .tone-chip-icon {

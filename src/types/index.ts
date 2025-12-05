@@ -1,5 +1,137 @@
 export type SlideFormat = 'webinar' | 'meeting' | 'seminar' | 'conference' | 'instapost' | 'instastory' | 'a4'
+
+// Legacy Tone type (kept for backward compatibility during migration)
 export type Tone = 'simple' | 'casual' | 'luxury' | 'warm'
+
+// ============================================
+// 印象コードシステム (Impression Code System)
+// ============================================
+
+/**
+ * 4軸の印象コード
+ * 各軸は1〜5の値を持つ（3が中央/ニュートラル）
+ * 
+ * 軸の定義：
+ * - E (Energy): 落ち着いた(1) 〜 エネルギッシュ(5)
+ * - F (Formality): 親しみやすい(1) 〜 格式高い(5)
+ * - C (Classic-Modern): 伝統的(1) 〜 現代的(5)
+ * - D (Decoration): シンプル(1) 〜 装飾的(5)
+ */
+export interface ImpressionCode {
+  energy: number        // E: 1=落ち着いた（Calm） 〜 5=エネルギッシュ（Energetic）
+  formality: number     // F: 1=親しみやすい（Friendly） 〜 5=格式高い（Formal）
+  classicModern: number // C: 1=伝統的（Classic） 〜 5=現代的（Modern）
+  decoration: number    // D: 1=シンプル（Simple） 〜 5=装飾的（Decorative）
+}
+
+/**
+ * 印象コードのプリセット定義
+ */
+export interface ImpressionPreset {
+  id: string
+  name: string          // 表示名（例: "kawaii", "business"）
+  nameJa: string        // 日本語名（例: "かわいい", "ビジネス"）
+  code: ImpressionCode
+  description?: string  // 説明文
+}
+
+/**
+ * スライダーの区間指定（フィルタリング用）
+ * 各軸の最小値〜最大値を指定
+ */
+export interface ImpressionRange {
+  energy: [number, number]
+  formality: [number, number]
+  classicModern: [number, number]
+  decoration: [number, number]
+}
+
+/**
+ * グラデーション設定
+ */
+export interface GradientConfig {
+  enabled: boolean
+  type: 'linear' | 'radial'
+  angle?: number  // linear用: 0-360度
+  colors: string[]  // 2色以上
+  positions?: number[]  // 各色の位置（0-100）
+}
+
+/**
+ * 印象コードのサブ属性（出力に影響する追加パラメータ）
+ */
+export interface ImpressionSubAttributes {
+  themeMode?: 'light' | 'dark' | 'auto'  // テーマモード（背景の明暗）
+  colorTemperature?: 'cool' | 'neutral' | 'warm'  // 色温度（寒色〜暖色）
+  contrast?: 'low' | 'medium' | 'high'  // コントラスト（配色のメリハリ）
+  saturation?: 'muted' | 'normal' | 'vivid'  // 彩度（色の鮮やかさ）
+}
+
+/**
+ * 印象コードから生成されるCSSスタイル変数
+ */
+export interface ImpressionStyleVars {
+  // Colors
+  primary: string
+  primaryLight: string
+  primaryDark: string
+  background: string
+  backgroundAlt: string
+  text: string
+  textMuted: string
+  accent: string
+  // Gradients
+  backgroundGradient?: GradientConfig
+  textGradient?: GradientConfig
+  // Typography
+  fontFamily: string
+  fontFamilyHeading: string
+  fontWeight: number
+  fontWeightHeading: number
+  letterSpacing: string
+  // Layout
+  borderRadius: string
+  spacing: string
+}
+
+/**
+ * 印象コードの履歴エントリ
+ */
+export interface ImpressionHistoryEntry {
+  code: ImpressionCode
+  presetId?: string     // プリセットから選択した場合のID
+  timestamp: number
+}
+
+/**
+ * 詳細設定のピン留め状態
+ * trueの項目はトンマナ変更時も値を保持する
+ */
+export interface StylePins {
+  primary?: boolean
+  background?: boolean
+  accent?: boolean
+  fontFamily?: boolean
+  borderRadius?: boolean
+  backgroundGradient?: boolean
+  textGradient?: boolean
+  subAttributes?: boolean  // サブ属性全体のピン留め
+}
+
+/**
+ * カラーパレット候補
+ * トンマナから生成される色相バリエーション
+ */
+export interface ColorPalette {
+  id: string
+  name: string        // 例: "ブルー系", "グリーン系"
+  nameEn: string      // 例: "Blue", "Green"
+  primary: string     // メインカラー
+  background: string  // 背景色
+  accent: string      // アクセントカラー
+  text: string        // テキスト色
+}
+
 export type ConsoleMessageType = 'error' | 'warning' | 'info'
 
 export interface ConsoleMessage {

@@ -3,6 +3,7 @@ import type { Item } from '../../types'
 import './Items.css'
 
 const MAIN_SLIDE_ITEM_ID = 'main-slide'
+const TONMANA_TAB_ID = 'tonmana'
 
 interface ItemTabBarProps {
   items: Item[]
@@ -13,6 +14,9 @@ interface ItemTabBarProps {
   onInsert?: (item: Item) => void
   onDelete?: (itemId: string) => void
   existingNames?: string[]
+  // トンマナタブ用
+  isTonmanaSelected?: boolean
+  onSelectTonmana?: () => void
 }
 
 export const ItemTabBar = ({ 
@@ -23,7 +27,9 @@ export const ItemTabBar = ({
   onUpdateItem,
   onInsert,
   onDelete,
-  existingNames = []
+  existingNames = [],
+  isTonmanaSelected = false,
+  onSelectTonmana,
 }: ItemTabBarProps) => {
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
@@ -273,10 +279,20 @@ export const ItemTabBar = ({
         {/* メインスライドアイテム */}
         {mainSlideItem && (
           <div 
-            className={`item-name-bar-item ${selectedItemId === mainSlideItem.id ? 'active' : ''}`}
+            className={`item-name-bar-item ${selectedItemId === mainSlideItem.id && !isTonmanaSelected ? 'active' : ''}`}
             onClick={() => onSelectItem(mainSlideItem.id)}
           >
             <span className="item-name-bar-text">{mainSlideItem.name}</span>
+          </div>
+        )}
+        
+        {/* トンマナ */}
+        {onSelectTonmana && (
+          <div 
+            className={`item-name-bar-item ${isTonmanaSelected ? 'active' : ''}`}
+            onClick={onSelectTonmana}
+          >
+            <span className="item-name-bar-text">トンマナ</span>
           </div>
         )}
         
@@ -306,7 +322,7 @@ export const ItemTabBar = ({
         {mainSlideItem && (
           <button
             key={mainSlideItem.id}
-            className={`item-tab-icon-button ${selectedItemId === mainSlideItem.id ? 'active' : ''}`}
+            className={`item-tab-icon-button ${selectedItemId === mainSlideItem.id && !isTonmanaSelected ? 'active' : ''}`}
             onClick={(e) => {
               onSelectItem(mainSlideItem.id)
               // マウスクリック後はフォーカスを削除して、ブラウザのデフォルトフォーカススタイルを防ぐ
@@ -317,7 +333,22 @@ export const ItemTabBar = ({
           </button>
         )}
 
-        {/* Main Slideとその他のアイテムの区切り線 */}
+        {/* トンマナタブ（Main Slideの直下） */}
+        {onSelectTonmana && (
+          <button
+            key={TONMANA_TAB_ID}
+            className={`item-tab-icon-button tonmana-tab ${isTonmanaSelected ? 'active' : ''}`}
+            onClick={(e) => {
+              onSelectTonmana()
+              e.currentTarget.blur()
+            }}
+            title="トンマナ設定"
+          >
+            <span className="material-icons">palette</span>
+          </button>
+        )}
+
+        {/* Main Slide/トンマナとその他のアイテムの区切り線 */}
         {mainSlideItem && otherItems.length > 0 && (
           <div className="item-tab-separator" />
         )}
@@ -492,7 +523,7 @@ export const ItemTabBar = ({
                 onKeyDown={(e) => handleNameKeyDown(e, editingItem)}
                 className={`item-tab-name-input ${nameError ? 'error' : ''}`}
                 onFocus={(e) => {
-                  e.target.style.borderColor = nameError ? '#FF5370' : '#d4a574'
+                  e.target.style.borderColor = nameError ? '#FF5370' : '#F5E6D3'
                   e.target.style.background = '#252525'
                   e.target.style.padding = '0.125rem 0.25rem'
                 }}

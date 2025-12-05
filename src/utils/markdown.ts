@@ -144,6 +144,7 @@ export const extractSlideTitle = (content: string): string => {
 }
 
 // スライドのレイアウトタイプを抽出する関数
+// [中扉]は廃止され、#が自動的にセクション区切りとして機能するため不要
 export const extractSlideLayout = (content: string): 'cover' | 'toc' | 'section' | 'summary' | 'normal' => {
   const lines = content.split('\n')
   for (const line of lines) {
@@ -157,8 +158,6 @@ export const extractSlideLayout = (content: string): 'cover' | 'toc' | 'section'
           return 'cover'
         case '目次':
           return 'toc'
-        case '中扉':
-          return 'section'
         case 'まとめ':
           return 'summary'
         default:
@@ -248,8 +247,9 @@ export const splitSlidesByHeading = (
 export interface SplitContentByH2Result {
   h1Section: string
   h2Sections: string[]
-  h2Ratios: (number | null)[]  // 各H2セクションの比率（省略時はnull）
-  ratioErrors: Array<{ rawValue: string; lineNumber: number }>  // 不正な比率指定のエラー情報
+  h2Ratios: (number | null)[]  // 各H2セクションの比率（省略時は1）
+  h2Alignments: ('top' | 'mid' | 'btm')[]  // 各H2セクションの垂直配置（省略時はtop）
+  ratioErrors: Array<{ rawValue: string; lineNumber: number; message: string }>  // 不正な比率・配置指定のエラー情報
 }
 
 // スライドコンテンツをh2で分割する関数（横並び表示用）
@@ -258,12 +258,14 @@ export const splitContentByH2 = (content: string): SplitContentByH2Result => {
   const lines = content.split('\n')
   const h2Sections: string[] = []
   const h2Ratios: (number | null)[] = []
-  const ratioErrors: Array<{ rawValue: string; lineNumber: number }> = []
+  const h2Alignments: ('top' | 'mid' | 'btm')[] = []
+  const ratioErrors: Array<{ rawValue: string; lineNumber: number; message: string }> = []
   let h1Section: string[] = []
   let currentH2Section: string[] = []
   let h2Count = 0
   let h1Found = false
   let currentH2Ratio: number | null = null
+  let currentH2Alignment: 'top' | 'mid' | 'btm' = 'top'
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -279,6 +281,7 @@ export const splitContentByH2 = (content: string): SplitContentByH2Result => {
         if (currentH2Section.length > 0) {
           h2Sections.push(currentH2Section.join('\n'))
           h2Ratios.push(currentH2Ratio)
+          h2Alignments.push(currentH2Alignment)
         }
         break
       }
@@ -289,21 +292,34 @@ export const splitContentByH2 = (content: string): SplitContentByH2Result => {
       if (currentH2Section.length > 0) {
         h2Sections.push(currentH2Section.join('\n'))
         h2Ratios.push(currentH2Ratio)
+        h2Alignments.push(currentH2Alignment)
       }
       
-      // 比率指定をパース
+      // 比率・配置指定をパース
       const ratioResult = parseColumnRatio(line)
       currentH2Ratio = ratioResult.ratio
+      currentH2Alignment = ratioResult.alignment ?? 'top'
       
       // エラーがある場合は記録
-      if (ratioResult.hasRatioSyntax && ratioResult.ratio === null && ratioResult.rawValue !== null) {
-        ratioErrors.push({
-          rawValue: ratioResult.rawValue,
-          lineNumber: i + 1  // 1-based line number
-        })
+      if (ratioResult.hasRatioSyntax) {
+        if (ratioResult.ratioError || ratioResult.alignmentError) {
+          let errorMessage = ''
+          if (ratioResult.ratioError && ratioResult.alignmentError) {
+            errorMessage = `無効な比率・配置指定 {${ratioResult.rawValue}}（正の実数とtop/mid/btmを指定してください）`
+          } else if (ratioResult.ratioError) {
+            errorMessage = `無効な比率指定 {${ratioResult.rawValue}}（正の実数を指定してください）`
+          } else if (ratioResult.alignmentError) {
+            errorMessage = `無効な配置指定 {${ratioResult.rawValue}}（top/mid/btmを指定してください）`
+          }
+          ratioErrors.push({
+            rawValue: ratioResult.rawValue ?? '',
+            lineNumber: i + 1,  // 1-based line number
+            message: errorMessage
+          })
+        }
       }
       
-      // 比率指定を除去した行を追加
+      // 比率・配置指定を除去した行を追加
       currentH2Section = [removeColumnRatioFromLine(line)]
     } else {
       // h1が見つかる前のコンテンツはh1セクションに、h2が見つかった後はh2セクションに追加
@@ -321,12 +337,14 @@ export const splitContentByH2 = (content: string): SplitContentByH2Result => {
   if (currentH2Section.length > 0) {
     h2Sections.push(currentH2Section.join('\n'))
     h2Ratios.push(currentH2Ratio)
+    h2Alignments.push(currentH2Alignment)
   }
   
   return {
     h1Section: h1Section.join('\n'),
     h2Sections: h2Count >= 2 ? h2Sections : [],
     h2Ratios: h2Count >= 2 ? h2Ratios : [],
+    h2Alignments: h2Count >= 2 ? h2Alignments : [],
     ratioErrors
   }
 }
@@ -352,21 +370,34 @@ export const hasMultipleH2 = (content: string): boolean => {
 }
 
 // アイテム挿入記法を展開する関数
-// @アイテム名 形式でアイテムを参照
+// @アイテム名 または [[sheet:xxx]] 形式でアイテムを参照
 export const expandItemReferences = (
   content: string,
   itemResolverFn: (name: string) => string | null
 ): string => {
-  // @アイテム名 パターンをマッチ
-  const itemReferencePattern = /@([^\s@]+)/g
+  let result = content
   
-  const result = content.replace(itemReferencePattern, (_match, itemName) => {
+  // [[sheet:xxx]] パターンをマッチ（先に処理）
+  const sheetPattern = /\[\[sheet:([^\]]+)\]\]/g
+  result = result.replace(sheetPattern, (_match, itemName) => {
     const itemMarkdown = itemResolverFn(itemName)
     if (itemMarkdown === null) {
       // アイテムが見つからない場合はエラーメッセージを表示
       return `<span class="item-not-found">⚠️ Item not found: ${itemName}</span>`
     }
-    console.log('[expandItemReferences] Expanded item:', itemName, 'markdown length:', itemMarkdown.length)
+    console.log('[expandItemReferences] Expanded item (sheet):', itemName, 'markdown length:', itemMarkdown.length)
+    return itemMarkdown
+  })
+  
+  // @アイテム名 パターンをマッチ
+  const itemReferencePattern = /@([^\s@]+)/g
+  result = result.replace(itemReferencePattern, (_match, itemName) => {
+    const itemMarkdown = itemResolverFn(itemName)
+    if (itemMarkdown === null) {
+      // アイテムが見つからない場合はエラーメッセージを表示
+      return `<span class="item-not-found">⚠️ Item not found: ${itemName}</span>`
+    }
+    console.log('[expandItemReferences] Expanded item (@):', itemName, 'markdown length:', itemMarkdown.length)
     return itemMarkdown
   })
   
@@ -376,7 +407,7 @@ export const expandItemReferences = (
 
 // アイテム参照があるかチェックする関数
 export const hasItemReferences = (content: string): boolean => {
-  return /@([^\s@]+)/.test(content)
+  return /@([^\s@]+)/.test(content) || /\[\[sheet:([^\]]+)\]\]/.test(content)
 }
 
 // ============================================
@@ -387,22 +418,25 @@ export const hasItemReferences = (content: string): boolean => {
  * 比率指定のパース結果
  */
 export interface ColumnRatioParseResult {
-  ratio: number | null  // 有効な比率値、無効な場合はnull
+  ratio: number | null  // 有効な比率値、無効な場合はnull（省略時は1）
+  alignment: 'top' | 'mid' | 'btm' | null  // 垂直配置（省略時はtop）
   rawValue: string | null  // 元の値（エラー表示用）
   title: string  // 比率指定を除いたタイトル
   hasRatioSyntax: boolean  // 比率構文が存在したか
+  ratioError: boolean  // 比率のエラーがあるか
+  alignmentError: boolean  // 配置のエラーがあるか
 }
 
 /**
- * H2/H3行から比率指定をパースする
+ * H2/H3行から比率指定と配置指定をパースする
  * 
- * @param line - パースする行（例: "## {2} タイトル"）
+ * @param line - パースする行（例: "## {2 mid} タイトル"）
  * @returns パース結果
  */
 export const parseColumnRatio = (line: string): ColumnRatioParseResult => {
   const trimmed = line.trim()
   
-  // H2またはH3の比率指定パターン: ## {数値} タイトル または ### {数値} タイトル
+  // H2またはH3の比率・配置指定パターン: ## {比率 配置} タイトル または ### {比率 配置} タイトル
   const ratioPattern = /^(#{2,3})\s+\{([^}]*)\}\s*(.*)$/
   const match = trimmed.match(ratioPattern)
   
@@ -413,9 +447,12 @@ export const parseColumnRatio = (line: string): ColumnRatioParseResult => {
     const titleMatch = trimmed.match(/^#{2,3}(?:\s+(.*))?$/)
     return {
       ratio: null,
+      alignment: null,
       rawValue: null,
       title: titleMatch && titleMatch[1] ? titleMatch[1] : '',
-      hasRatioSyntax: false
+      hasRatioSyntax: false,
+      ratioError: false,
+      alignmentError: false
     }
   }
   
@@ -426,42 +463,96 @@ export const parseColumnRatio = (line: string): ColumnRatioParseResult => {
   if (rawValue.trim() === '') {
     return {
       ratio: null,
+      alignment: null,
       rawValue: rawValue,
       title: title,
-      hasRatioSyntax: true
+      hasRatioSyntax: true,
+      ratioError: true,
+      alignmentError: false
     }
   }
   
-  // 正の実数かどうかを検証
-  // 許容: 0.5, 1, 1.5, 2, 2.5 など
-  // 不許容: 0, -1, abc, 1.2.3 など
-  const numValue = parseFloat(rawValue.trim())
+  // スペースで分割してトークンを取得
+  const tokens = rawValue.trim().split(/\s+/).filter(t => t.length > 0)
   
-  if (isNaN(numValue) || numValue <= 0 || !isFinite(numValue)) {
-    return {
-      ratio: null,
-      rawValue: rawValue,
-      title: title,
-      hasRatioSyntax: true
+  let ratio: number | null = null
+  let alignment: 'top' | 'mid' | 'btm' | null = null
+  let ratioError = false
+  let alignmentError = false
+  let ratioFound = false
+  let alignmentFound = false
+  
+  // 各トークンを判定
+  for (const token of tokens) {
+    // 正の実数かどうかを検証
+    const numValue = parseFloat(token)
+    const validNumberPattern = /^(?:0|[1-9]\d*)(?:\.\d+)?$/
+    
+    if (!isNaN(numValue) && numValue > 0 && isFinite(numValue) && validNumberPattern.test(token)) {
+      // 比率として有効
+      if (ratioFound) {
+        // 比率が重複指定されている
+        ratioError = true
+      } else {
+        ratio = numValue
+        ratioFound = true
+      }
+    } else if (token === 'top' || token === 'mid' || token === 'btm') {
+      // 配置指定として有効
+      if (alignmentFound) {
+        // 配置が重複指定されている
+        alignmentError = true
+      } else {
+        alignment = token as 'top' | 'mid' | 'btm'
+        alignmentFound = true
+      }
+    } else {
+      // 無効なトークン
+      if (!ratioFound && !alignmentFound) {
+        // 最初のトークンが無効な場合、比率エラーとして扱う
+        ratioError = true
+      } else if (ratioFound && !alignmentFound) {
+        // 比率は見つかったが、配置として無効
+        alignmentError = true
+      } else if (!ratioFound && alignmentFound) {
+        // 配置は見つかったが、比率として無効
+        ratioError = true
+      } else {
+        // 両方見つかった後の無効なトークン
+        ratioError = true
+      }
     }
   }
   
-  // 追加の検証: 文字列として正しい数値形式か
-  const validNumberPattern = /^(?:0|[1-9]\d*)(?:\.\d+)?$/
-  if (!validNumberPattern.test(rawValue.trim())) {
+  // デフォルト値の適用
+  if (!ratioFound && !ratioError) {
+    ratio = 1  // 省略時は1
+  }
+  if (!alignmentFound && !alignmentError) {
+    alignment = 'top'  // 省略時はtop
+  }
+  
+  // エラーがある場合は、ratioとalignmentをnullにしてエラーとして扱う
+  if (ratioError || alignmentError) {
     return {
       ratio: null,
+      alignment: null,
       rawValue: rawValue,
       title: title,
-      hasRatioSyntax: true
+      hasRatioSyntax: true,
+      ratioError: ratioError || (ratioFound && ratio === null),
+      alignmentError: alignmentError || (alignmentFound && alignment === null)
     }
   }
   
   return {
-    ratio: numValue,
+    ratio: ratio ?? 1,
+    alignment: alignment ?? 'top',
     rawValue: rawValue,
     title: title,
-    hasRatioSyntax: true
+    hasRatioSyntax: true,
+    ratioError: false,
+    alignmentError: false
   }
 }
 
@@ -509,5 +600,55 @@ export const removeColumnRatioFromLine = (line: string): string => {
   }
   
   return line
+}
+
+/**
+ * ドキュメント全体からセクション見出し（#）を抽出する
+ * レイアウトタイプ付きの見出し（[表紙]、[目次]、[まとめ]）は除外
+ * 
+ * @param content - ドキュメント全体のコンテンツ
+ * @returns セクション見出しの配列
+ */
+export const extractSectionHeadings = (content: string): string[] => {
+  const lines = content.split('\n')
+  const sections: string[] = []
+  
+  for (const line of lines) {
+    const trimmed = line.trim()
+    // H1のパターンをチェック
+    const h1Match = trimmed.match(/^#\s+(.+)$/)
+    if (h1Match) {
+      const title = h1Match[1].trim()
+      // レイアウトタイプ記法をチェック
+      const layoutMatch = title.match(/^\[([^\]]+)\]\s*(.*)$/)
+      if (layoutMatch) {
+        const layoutType = layoutMatch[1]
+        // [表紙]、[目次]、[まとめ]は除外
+        if (layoutType === '表紙' || layoutType === '目次' || layoutType === 'まとめ') {
+          continue
+        }
+        // その他のレイアウトタイプ（[中扉]など）も除外
+        continue
+      }
+      // レイアウトタイプがない通常のセクション見出し
+      sections.push(title)
+    }
+  }
+  
+  return sections
+}
+
+/**
+ * 目次を自動生成する（Markdown形式の番号付きリスト）
+ * 
+ * @param sections - セクション見出しの配列
+ * @returns 目次のMarkdown文字列
+ */
+export const generateTableOfContents = (sections: string[]): string => {
+  if (sections.length === 0) {
+    return ''
+  }
+  
+  return sections.map((section, index) => `${index + 1}. ${section}`).join('\n')
 }
 

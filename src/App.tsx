@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import type { Slide, SlideFormat, Tone, ConsoleMessage, Item, EditorLine, EditorSelection } from './types'
+import type { Slide, SlideFormat, Tone, ConsoleMessage, Item, EditorLine, EditorSelection, ImpressionCode, ImpressionStyleVars, StylePins } from './types'
 import { generateConsoleMessages } from './utils/validation'
 import { loadPresentation } from './utils/slides'
 import { extractSlideLayout, splitSlidesByHeading } from './utils/markdown'
@@ -7,13 +7,14 @@ import { formatConfigs } from './constants/formatConfigs'
 import { createItem, updateItem } from './utils/items'
 import { saveItemsToLocalStorage, loadItemsFromLocalStorage } from './utils/fileSystem'
 import { contentToLines, linesToContent, linesToAttributeMap } from './utils/attributes'
+import { DEFAULT_IMPRESSION_CODE, findMatchingPreset } from './constants/impressionConfigs'
 import type { SlideItem } from './types'
 
 const MAIN_SLIDE_ITEM_ID = 'main-slide'
 import { Toolbar } from './components/toolbar/Toolbar'
 import { ExportModal } from './components/modal/ExportModal'
 import { HelpModal } from './components/modal/HelpModal'
-import { ToneSelector } from './components/preview/ToneSelector'
+import { ToneDisplay } from './components/preview/ToneDisplay'
 import { FormatTabs } from './components/preview/FormatTabs'
 import { Preview } from './components/preview/Preview'
 import { SlideCarousel } from './components/slideCarousel/SlideCarousel'
@@ -25,6 +26,7 @@ import { ItemDetailPanel } from './components/items/ItemDetailPanel'
 import { ItemModal } from './components/items/ItemModal'
 import { SlideShowView } from './components/slideshow/SlideShowView'
 import { FloatingNavBar } from './components/floatingNavBar/FloatingNavBar'
+import { ImpressionPanel } from './components/impression/ImpressionPanel'
 import './App.css'
 
 // Default content
@@ -33,12 +35,6 @@ const DEFAULT_CONTENT = `# [表紙] プレゼンテーションタイトル
 あなたのプレゼンテーションをここに作成
 
 # [目次] 目次
-
-- セクション1
-- セクション2
-- まとめ
-
-# [中扉] セクション1
 
 # セクション1
 
@@ -53,8 +49,6 @@ const DEFAULT_CONTENT = `# [表紙] プレゼンテーションタイトル
 - ポイント1
 - ポイント2
 - ポイント3
-
-# [中扉] セクション2
 
 # セクション2
 
@@ -76,7 +70,61 @@ function App() {
   const [slides, setSlides] = useState<Slide[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [currentFormat, setCurrentFormat] = useState<SlideFormat>('webinar')
-  const [currentTone, setCurrentTone] = useState<Tone>('simple')
+  
+  // 印象コードシステム
+  const [impressionCode, setImpressionCode] = useState<ImpressionCode>(DEFAULT_IMPRESSION_CODE)
+  const [styleOverrides, setStyleOverrides] = useState<Partial<ImpressionStyleVars>>({})
+  const [stylePins, setStylePins] = useState<StylePins>({})
+  const [isTonmanaSelected, setIsTonmanaSelected] = useState(false)
+  
+  // スタイルオーバーライドを更新するハンドラー
+  const handleStyleOverride = useCallback((overrides: Partial<ImpressionStyleVars>) => {
+    setStyleOverrides(prev => ({ ...prev, ...overrides }))
+  }, [])
+  
+  // ピン留め状態を更新するハンドラー
+  const handleStylePinChange = useCallback((pins: Partial<StylePins>) => {
+    setStylePins(prev => ({ ...prev, ...pins }))
+  }, [])
+  
+  // 印象コード変更時のハンドラー（ピン留めされていない項目をクリア）
+  const handleImpressionCodeChange = useCallback((newCode: ImpressionCode) => {
+    setImpressionCode(newCode)
+    // ピン留めされていない項目をstyleOverridesからクリア
+    setStyleOverrides(prev => {
+      const filtered: Partial<ImpressionStyleVars> = {}
+      if (stylePins.primary && prev.primary !== undefined) {
+        filtered.primary = prev.primary
+      }
+      if (stylePins.background && prev.background !== undefined) {
+        filtered.background = prev.background
+      }
+      if (stylePins.accent && prev.accent !== undefined) {
+        filtered.accent = prev.accent
+      }
+      if (stylePins.fontFamily && prev.fontFamily !== undefined) {
+        filtered.fontFamily = prev.fontFamily
+      }
+      if (stylePins.borderRadius && prev.borderRadius !== undefined) {
+        filtered.borderRadius = prev.borderRadius
+      }
+      return filtered
+    })
+  }, [stylePins])
+  
+  // Legacy: 印象コードからToneを導出（後方互換性のため）
+  const currentTone = useMemo((): Tone => {
+    const preset = findMatchingPreset(impressionCode)
+    if (preset) {
+      // プリセットIDが旧Tone型と一致する場合はそれを使用
+      if (['simple', 'casual', 'luxury', 'warm'].includes(preset.id)) {
+        return preset.id as Tone
+      }
+    }
+    // デフォルトは'simple'
+    return 'simple'
+  }, [impressionCode])
+  
   const [items, setItems] = useState<Item[]>([])
   const [selectedItemId, setSelectedItemId] = useState<string | null>(MAIN_SLIDE_ITEM_ID)
   const [showItemModal, setShowItemModal] = useState(false)
@@ -485,6 +533,8 @@ function App() {
           currentIndex={currentIndex}
           currentFormat={currentFormat}
           currentTone={currentTone}
+          impressionCode={impressionCode}
+          styleOverrides={styleOverrides}
           items={items}
           onClose={() => setShowSlideShow(false)}
           onNavigate={setCurrentIndex}
@@ -496,9 +546,12 @@ function App() {
       <div className="flex-1 flex overflow-hidden">
         {/* プレビュー */}
         <div className="flex flex-col p-4" style={{ width: '40%' }}>
-          <ToneSelector
-            currentTone={currentTone}
-            onToneChange={setCurrentTone}
+          <ToneDisplay
+            code={impressionCode}
+            onClick={() => {
+              setIsTonmanaSelected(true)
+              setSelectedItemId(null)
+            }}
           />
 
           <FormatTabs
@@ -523,6 +576,8 @@ function App() {
               currentIndex={currentIndex}
               currentFormat={currentFormat}
               currentTone={currentTone}
+              impressionCode={impressionCode}
+              styleOverrides={styleOverrides}
               previewRef={previewRef}
               items={items}
               onNavigate={handleNavigate}
@@ -541,15 +596,32 @@ function App() {
             currentIndex={currentIndex}
             currentFormat={currentFormat}
             currentTone={currentTone}
+            impressionCode={impressionCode}
+            styleOverrides={styleOverrides}
             items={items}
             setCurrentIndex={setCurrentIndex}
           />
         </div>
 
         {/* エディター + アイテムタブバー */}
-        <div className="flex flex-col" style={{ minHeight: 0, width: '35%' }}>
+        <div className="flex flex-col" style={{ minHeight: 0, width: '35%', overflow: 'hidden' }}>
           {/* アイテム名表示 */}
-          {selectedItemId && (() => {
+          {(selectedItemId || isTonmanaSelected) && (() => {
+            // トンマナ選択時
+            if (isTonmanaSelected) {
+              const preset = findMatchingPreset(impressionCode)
+              return (
+                <div className="editor-file-header" style={{ borderBottom: '1px solid #3a3a3a', backgroundColor: '#1e1e1e' }}>
+                  <div className="flex items-center gap-2">
+                    <span className="material-icons" style={{ fontSize: '1rem', color: '#FFCB6B' }}>palette</span>
+                    <span style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500 }}>
+                      トンマナ{preset ? ` - ${preset.nameJa}` : ''}
+                    </span>
+                  </div>
+                </div>
+              )
+            }
+            
             const selectedItem = items.find(item => item.id === selectedItemId)
             if (!selectedItem) return null
             
@@ -693,11 +765,21 @@ function App() {
             )
           })()}
           
-          <div className="flex" style={{ flex: 1, minHeight: 0 }}>
+          <div className="flex" style={{ flex: 1, minHeight: 0, minWidth: 0, overflow: 'hidden' }}>
             {/* エディター部分（条件付き表示） */}
-            <div className="flex flex-col" style={{ minHeight: 0, flex: '1 1 auto' }}>
-            {/* その他のアイテム選択時：ItemDetailPanelを表示 */}
-            {selectedItemId && selectedItemId !== MAIN_SLIDE_ITEM_ID ? (
+            <div className="flex flex-col" style={{ minHeight: 0, minWidth: 0, flex: '1 1 0', position: 'relative', overflow: 'hidden' }}>
+            {/* トンマナ選択時：ImpressionPanelを表示 */}
+            {isTonmanaSelected ? (
+              <ImpressionPanel
+                code={impressionCode}
+                onCodeChange={handleImpressionCodeChange}
+                styleOverrides={styleOverrides}
+                onStyleOverride={handleStyleOverride}
+                stylePins={stylePins}
+                onStylePinChange={handleStylePinChange}
+              />
+            ) : selectedItemId && selectedItemId !== MAIN_SLIDE_ITEM_ID ? (
+              /* その他のアイテム選択時：ItemDetailPanelを表示 */
               <ItemDetailPanel
                 item={items.find(item => item.id === selectedItemId) || null}
                 onEdit={handleEditItem}
@@ -722,16 +804,24 @@ function App() {
               <ItemTabBar
                 items={items}
                 selectedItemId={selectedItemId}
-                onSelectItem={setSelectedItemId}
+                onSelectItem={(itemId) => {
+                  setSelectedItemId(itemId)
+                  setIsTonmanaSelected(false)
+                }}
                 onAddItem={handleAddItem}
                 onUpdateItem={handleUpdateItem}
                 existingNames={items.map(item => item.name)}
+                isTonmanaSelected={isTonmanaSelected}
+                onSelectTonmana={() => {
+                  setIsTonmanaSelected(true)
+                  setSelectedItemId(null)
+                }}
               />
             </div>
           </div>
           {/* Toast - FloatingNavBarの上に表示（エディタ選択時のみ） */}
           {/* 行番号カラム(60px)を除いたテキスト部分の中央に配置 */}
-          {(!selectedItemId || selectedItemId === MAIN_SLIDE_ITEM_ID) && (
+          {!isTonmanaSelected && (!selectedItemId || selectedItemId === MAIN_SLIDE_ITEM_ID) && (
             <div
               className="pointer-events-none fixed z-40"
               style={{ 
@@ -749,7 +839,7 @@ function App() {
           )}
           {/* FloatingNavBar - エディタ領域の最下部（エディタ選択時のみ） */}
           {/* 行番号カラム(60px)を除いたテキスト部分の中央に配置 */}
-          {(!selectedItemId || selectedItemId === MAIN_SLIDE_ITEM_ID) && (
+          {!isTonmanaSelected && (!selectedItemId || selectedItemId === MAIN_SLIDE_ITEM_ID) && (
             <div
               className="pointer-events-none fixed z-40"
               style={{ 

@@ -16,7 +16,7 @@
 }
 
 .bg-blue-500 {
-  background-color: #d4a574;
+  background-color: #C4A584;
 }
 
 .bg-red-500 {
@@ -48,7 +48,7 @@
 }
 
 .text-blue-600 {
-  color: #d4a574;
+  color: #F5E6D3;
 }
 
 .rounded-lg {
@@ -216,7 +216,7 @@
 }
 
 .border-blue-500 {
-  border-color: #d4a574;
+  border-color: #F5E6D3;
 }
 
 .border-gray-300 {
@@ -304,8 +304,8 @@
 }
 
 button:hover.hover\:bg-blue-600 {
-  background-color: #d4a574;
-  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.25);
+  background-color: #C4A584;
+  box-shadow: 0 0 0 2px rgba(196, 165, 132, 0.25);
 }
 
 button:hover.hover\:bg-red-600 {
@@ -356,11 +356,11 @@ button:disabled.disabled\:cursor-not-allowed {
 }
 
 .focus\:ring-2:focus {
-  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.4);
+  box-shadow: 0 0 0 3px rgba(245, 230, 211, 0.4);
 }
 
 .focus\:ring-blue-400:focus {
-  --tw-ring-color: rgba(212, 165, 116, 0.4);
+  --tw-ring-color: rgba(245, 230, 211, 0.4);
 }
 
 .flex-wrap {
@@ -433,9 +433,11 @@ button:disabled.disabled\:cursor-not-allowed {
 }
 
 .prose {
-  color: #374151;
+  color: var(--tone-text, #374151) !important;
   /* 固定フォントサイズ（1920x1080px基準） */
   font-size: 24px;
+  /* フォントファミリー（CSS変数から） */
+  font-family: var(--tone-font-family, "Noto Sans JP", system-ui, -apple-system, sans-serif) !important;
   /* 改行設定 */
   word-wrap: break-word;
   word-break: break-word;
@@ -461,7 +463,9 @@ button:disabled.disabled\:cursor-not-allowed {
 .prose h2,
 .prose h3 {
   font-size: 36px; /* すべての見出しレベルを統一 */
-  font-weight: 600;
+  font-weight: var(--tone-font-weight-heading, 600) !important;
+  font-family: var(--tone-font-family-heading, var(--tone-font-family, "Noto Sans JP", system-ui)) !important;
+  color: var(--tone-primary, inherit) !important;
   line-height: 1.6;
   margin-top: 1.6em;
   margin-bottom: 0.6em;
@@ -474,6 +478,16 @@ button:disabled.disabled\:cursor-not-allowed {
 
 .prose h1 {
   margin-top: 0;
+}
+
+/* テキストグラデーション（見出し用） */
+.prose h1.text-gradient,
+.prose h2.text-gradient,
+.prose h3.text-gradient {
+  background: var(--tone-text-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* リストのスタイル */

@@ -1,0 +1,1000 @@
+/* ImpressionPanel - トンマナ設定パネル */
+
+.impression-panel {
+  display: block; /* flexではなくblockにして内部コンテンツのスクロールを有効化 */
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  height: 100%; /* 親の高さに合わせる */
+  background-color: #1e1e1e;
+  color: #e5e7eb;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  /* スクロールバーを非表示（Editorと同じ） */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.impression-panel::-webkit-scrollbar {
+  display: none;
+}
+
+/* セクション */
+.impression-section {
+  padding: 0.75rem;
+  border-bottom: 1px solid #3a3a3a;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.impression-section:last-child {
+  border-bottom: none;
+}
+
+.impression-section-title {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+/* 見本グリッド */
+.impression-samples {
+  display: flex;
+  gap: 0.625rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  min-width: 0;
+}
+
+.impression-samples::-webkit-scrollbar {
+  height: 6px;
+}
+
+.impression-samples::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 3px;
+}
+
+.impression-sample {
+  flex-shrink: 0;
+  width: 100px;
+  height: 75px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.impression-sample:hover {
+  border-color: #6b7280;
+  transform: translateY(-2px);
+}
+
+.impression-sample.active {
+  border-color: #FFCB6B;
+  box-shadow: 0 0 0 2px #FFCB6B;
+}
+
+.impression-sample.previous {
+  opacity: 0.7;
+}
+
+.impression-sample.outlier {
+  border-style: dashed;
+  border-color: #6b7280;
+}
+
+.impression-sample-content {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+
+.impression-sample-label {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  color: inherit;
+  opacity: 0.85;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+}
+
+.impression-sample-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.8rem;
+}
+
+/* 適用中のトンマナ表示 */
+.impression-current {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 203, 107, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 203, 107, 0.2);
+  min-width: 0;
+}
+
+.impression-current-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #FFCB6B;
+  white-space: nowrap;
+}
+
+.impression-current-code {
+  font-size: 0.625rem;
+  color: #9ca3af;
+  font-family: monospace;
+  white-space: nowrap;
+  cursor: text;
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  transition: background-color 0.15s ease;
+}
+
+.impression-current-code:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.impression-current-name {
+  cursor: text;
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  transition: background-color 0.15s ease;
+}
+
+.impression-current-name:hover {
+  background-color: rgba(255, 203, 107, 0.1);
+}
+
+/* 名前編集用入力フィールド */
+.impression-current-name-input {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #FFCB6B;
+  background: rgba(255, 203, 107, 0.15);
+  border: 1px solid #FFCB6B;
+  border-radius: 3px;
+  padding: 0.125rem 0.25rem;
+  outline: none;
+  min-width: 60px;
+  max-width: 120px;
+}
+
+/* コード編集用入力フィールド */
+.impression-current-code-input {
+  font-size: 0.625rem;
+  font-family: monospace;
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #6b7280;
+  border-radius: 3px;
+  padding: 0.125rem 0.25rem;
+  outline: none;
+  width: 70px;
+  text-transform: uppercase;
+}
+
+.impression-current-code-input:focus {
+  border-color: #FFCB6B;
+}
+
+/* コピーボタン */
+.impression-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+
+.impression-copy-btn .material-icons {
+  font-size: 0.875rem;
+}
+
+.impression-copy-btn:hover {
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.impression-copy-btn.copied {
+  color: #10b981;
+}
+
+.impression-copy-btn.copied:hover {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* 名前編集用入力フィールド */
+.impression-current-name-input {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #FFCB6B;
+  background: rgba(255, 203, 107, 0.1);
+  border: 1px solid #FFCB6B;
+  border-radius: 3px;
+  padding: 0.125rem 0.25rem;
+  outline: none;
+  width: 6rem;
+  font-family: inherit;
+}
+
+.impression-current-name-input:focus {
+  background: rgba(255, 203, 107, 0.15);
+}
+
+/* コード編集用入力フィールド */
+.impression-current-code-input {
+  font-size: 0.625rem;
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #6b7280;
+  border-radius: 3px;
+  padding: 0.125rem 0.25rem;
+  outline: none;
+  width: 5rem;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+  text-transform: uppercase;
+}
+
+.impression-current-code-input:focus {
+  border-color: #9ca3af;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* クリップボードコピーボタン */
+.impression-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+
+.impression-copy-btn:hover {
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.impression-copy-btn .material-icons {
+  font-size: 0.875rem;
+}
+
+.impression-copy-btn.copied {
+  color: #10b981;
+}
+
+.impression-copy-btn.copied:hover {
+  color: #10b981;
+}
+
+/* スライダー - Camera-style Design */
+.impression-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+  width: 100%;
+  padding: 0.25rem 0;
+}
+
+.impression-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.impression-slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.impression-slider-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  letter-spacing: 0.01em;
+}
+
+.impression-slider-value {
+  font-size: 0.5625rem;
+  color: #6b7280;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.impression-slider-track {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+  gap: 0.5rem;
+}
+
+/* 軸の両端ラベル */
+.impression-slider-axis-label {
+  font-size: 0.5625rem;
+  color: #9ca3af;
+  flex-shrink: 1;
+  width: 4rem;
+  min-width: 2.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.impression-slider-axis-label.left {
+  text-align: right;
+}
+
+.impression-slider-axis-label.right {
+  text-align: left;
+}
+
+/* 区間スライダー - Range Selection Style */
+.impression-range-slider {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  position: relative;
+  cursor: pointer;
+}
+
+/* メモリ（目盛り線）コンテナ */
+.impression-range-marks {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  height: 26px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* 各目盛りのコンテナ */
+.impression-range-mark-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.impression-range-mark {
+  width: 1px;
+  background: #4a4a4a;
+  flex-shrink: 0;
+  height: 6px;
+  transition: all 0.15s ease;
+}
+
+/* 選択区間内の目盛り線をハイライト（白っぽい色で区間指定と点指定を区別） */
+.impression-range-mark.in-range {
+  background: rgba(220, 210, 180, 0.8);
+  height: 8px;
+}
+
+/* 中央の目盛り線（大きめ） */
+.impression-range-mark.center {
+  height: 10px;
+}
+
+.impression-range-mark.center.in-range {
+  height: 10px;
+}
+
+/* 目盛りの数字ラベル */
+.impression-range-mark-label {
+  font-size: 0.5625rem;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+  color: #4a4a4a;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.impression-range-mark-label.in-range {
+  color: rgba(220, 210, 180, 0.9);
+}
+
+/* トラック（ベースライン） */
+.impression-range-track {
+  position: absolute;
+  top: 17px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #3a3a3a;
+  border-radius: 1px;
+}
+
+/* 選択区間のハイライト（白っぽい色で控えめに） */
+.impression-range-fill {
+  position: absolute;
+  top: 17px;
+  height: 2px;
+  background: rgba(220, 210, 180, 0.4);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* 現在値マーカー */
+.impression-range-current-marker {
+  position: absolute;
+  top: 6px;
+  width: 2px;
+  height: 24px;
+  background: #FFCB6B;
+  border-radius: 1px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* 区間ハンドル共通スタイル（ブラケット形状） */
+.impression-range-handle {
+  position: absolute;
+  top: 6px;
+  width: 12px;
+  height: 24px;
+  background: transparent;
+  cursor: ew-resize;
+  z-index: 2;
+  transform: translateX(-50%);
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 左ブラケット [ - ボーダーで描画（白っぽい色で区間指定と点指定を区別） */
+.impression-range-handle-min::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  border-left: 2px solid rgba(220, 210, 180, 0.7);
+  border-top: 2px solid rgba(220, 210, 180, 0.7);
+  border-bottom: 2px solid rgba(220, 210, 180, 0.7);
+  border-right: none;
+  box-sizing: border-box;
+  transition: border-color 0.12s ease;
+}
+
+/* 右ブラケット ] - ボーダーで描画（白っぽい色で区間指定と点指定を区別） */
+.impression-range-handle-max::before {
+  content: '';
+  position: absolute;
+  right: 2px;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  border-right: 2px solid rgba(220, 210, 180, 0.7);
+  border-top: 2px solid rgba(220, 210, 180, 0.7);
+  border-bottom: 2px solid rgba(220, 210, 180, 0.7);
+  border-left: none;
+  box-sizing: border-box;
+  transition: border-color 0.12s ease;
+}
+
+.impression-range-handle:hover::before {
+  border-color: rgba(240, 235, 220, 0.9);
+}
+
+.impression-range-handle.dragging::before {
+  border-color: #F5F0E5;
+}
+
+/* ハンドル上の値表示（区間指定の数字） */
+.impression-range-handle-value {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.625rem;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+  font-weight: 600;
+  color: #E8E4D9;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.impression-range-handle:hover .impression-range-handle-value,
+.impression-range-handle.dragging .impression-range-handle-value {
+  opacity: 1;
+}
+
+.impression-range-handle.dragging .impression-range-handle-value {
+  color: #fff;
+}
+
+/* 詳細設定 */
+.impression-detail-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 0;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.impression-detail-toggle:hover {
+  color: #d1d5db;
+}
+
+.impression-detail-toggle-icon {
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.impression-detail-toggle-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.impression-detail-content {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+.impression-detail-content.expanded {
+  display: flex;
+}
+
+.impression-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.375rem;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.impression-detail-row.pinned {
+  background-color: rgba(255, 203, 107, 0.08);
+  border: 1px solid rgba(255, 203, 107, 0.25);
+}
+
+.impression-detail-row-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.impression-detail-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.impression-detail-pin input[type="checkbox"] {
+  display: none;
+}
+
+.impression-detail-pin-icon {
+  font-size: 0.875rem;
+  color: #4a4a4a;
+  transition: all 0.15s ease;
+  transform: rotate(45deg);
+}
+
+.impression-detail-pin:hover .impression-detail-pin-icon {
+  color: #9ca3af;
+}
+
+.impression-detail-pin input[type="checkbox"]:checked + .impression-detail-pin-icon {
+  color: #FFCB6B;
+  transform: rotate(0deg);
+}
+
+.impression-detail-label {
+  font-size: 0.625rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.impression-detail-row.pinned .impression-detail-label {
+  color: #FFCB6B;
+}
+
+.impression-detail-input {
+  padding: 0.5rem;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: #e5e7eb;
+  font-size: 0.75rem;
+}
+
+.impression-detail-input:focus {
+  outline: none;
+  border-color: #FFCB6B;
+}
+
+/* プリセットチップ */
+.impression-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.impression-preset-chip {
+  padding: 0.2rem 0.4rem;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 0.75rem;
+  color: #d1d5db;
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.impression-preset-chip:hover {
+  background: #3a3a3a;
+  border-color: #4a4a4a;
+}
+
+.impression-preset-chip.active {
+  background: rgba(255, 203, 107, 0.15);
+  border-color: #FFCB6B;
+  color: #FFCB6B;
+}
+
+/* 広げるボタン */
+.impression-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.25rem 0.5rem;
+  margin-top: 0.375rem;
+  background: transparent;
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  color: #6b7280;
+  font-size: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.impression-expand-btn:hover {
+  border-color: #6b7280;
+  color: #9ca3af;
+}
+
+/* カラーパレット候補 */
+.impression-palette-section {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.impression-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.impression-palette-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  background: #2a2a2a;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.impression-palette-item:hover {
+  background: #333;
+  border-color: #4a4a4a;
+}
+
+.impression-palette-item.selected {
+  border-color: #FFCB6B;
+  background: rgba(255, 203, 107, 0.1);
+}
+
+.impression-palette-colors {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+}
+
+.impression-palette-color {
+  height: 24px;
+  border-radius: 3px;
+}
+
+.impression-palette-color.primary {
+  flex: 2;
+}
+
+.impression-palette-color.background {
+  flex: 2;
+}
+
+.impression-palette-color.accent {
+  flex: 1;
+}
+
+.impression-palette-name {
+  font-size: 0.5625rem;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.impression-palette-item.selected .impression-palette-name {
+  color: #FFCB6B;
+}
+
+
+/* ============================================ */
+/* グラデーション設定 */
+/* ============================================ */
+
+.impression-gradient-toggle {
+  position: relative;
+  display: inline-block;
+  width: 28px;
+  height: 16px;
+  margin-left: auto;
+}
+
+.impression-gradient-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.impression-gradient-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #4a4a4a;
+  transition: 0.2s;
+  border-radius: 16px;
+}
+
+.impression-gradient-toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #9ca3af;
+  transition: 0.2s;
+  border-radius: 50%;
+}
+
+.impression-gradient-toggle input:checked + .impression-gradient-toggle-slider {
+  background-color: rgba(255, 203, 107, 0.3);
+}
+
+.impression-gradient-toggle input:checked + .impression-gradient-toggle-slider::before {
+  transform: translateX(12px);
+  background-color: #FFCB6B;
+}
+
+.impression-gradient-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.impression-gradient-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.impression-gradient-preset {
+  width: 24px;
+  height: 24px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.impression-gradient-preset:hover {
+  border-color: #FFCB6B;
+  transform: scale(1.1);
+}
+
+.impression-gradient-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.impression-gradient-colors {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.impression-gradient-colors input[type="color"] {
+  width: 28px;
+  height: 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.impression-gradient-colors input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.impression-gradient-colors input[type="color"]::-webkit-color-swatch {
+  border: 1px solid #4a4a4a;
+  border-radius: 3px;
+}
+
+.impression-gradient-angle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.impression-gradient-angle input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #4a4a4a;
+  border-radius: 2px;
+}
+
+.impression-gradient-angle input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #FFCB6B;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.impression-detail-row.gradient-row {
+  padding-bottom: 0.5rem;
+}
+
+/* 推奨ボタン */
+.impression-suggest-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 203, 107, 0.1);
+  border: 1px solid rgba(255, 203, 107, 0.3);
+  border-radius: 4px;
+  color: #FFCB6B;
+  font-size: 0.625rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.impression-suggest-btn:hover {
+  background: rgba(255, 203, 107, 0.2);
+  border-color: rgba(255, 203, 107, 0.5);
+}
+
+.impression-suggest-btn .material-icons {
+  font-size: 0.75rem;
+}
+
+/* ============================================ */
+/* サブ属性設定 */
+/* ============================================ */
+
+.impression-sub-attributes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.impression-sub-attr-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.impression-sub-attr-label {
+  font-size: 0.625rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.impression-sub-attr-buttons {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.impression-sub-attr-btn {
+  flex: 1;
+  padding: 0.375rem 0.5rem;
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  color: #9ca3af;
+  font-size: 0.625rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.impression-sub-attr-btn:hover {
+  background: #333;
+  border-color: #5a5a5a;
+  color: #d1d5db;
+}
+
+.impression-sub-attr-btn.active {
+  background: rgba(255, 203, 107, 0.15);
+  border-color: #FFCB6B;
+  color: #FFCB6B;
+}
+
+.impression-sub-attr-btn.active:hover {
+  background: rgba(255, 203, 107, 0.2);
+}
+
